@@ -1,0 +1,1190 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "final_answer": "I cannot complete this request because the required tool calls cannot be executed in this environment.\n\nSpecifically:\n- The task requires calling `MoleculeInputNormalizer` first, then `EnzymeRetrosynthesisSearch` with the normalized target and building blocks.\n- No tool execution results are available to me here, so I cannot obtain canonical SMILES, run the AND-OR MCTS search, validate routes, or retrieve the Top-10 routes.\n- I must not fabricate routes, enzyme annotations, EC numbers, equations, or JSON outputs.\n\nTo proceed, please run the workflow in an environment where the listed tools are callable. The exact first call should be:\n\n```json\n{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}\n```\n\nAfter normalization succeeds, the single search call should be:\n\n```json\n{\n  \"targets\": [\"<normalized target SMILES>\"],\n  \"building_blocks\": [\"<normalized D1 SMILES>\", \"<normalized D2 SMILES>\"],\n  \"endpoint_mode\": \"exact_set\",\n  \"top_k\": 10,\n  \"search_algorithm\": \"and_or_mcts\",\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"max_model_calls\": 100\n  }\n}\n```\n\nThen report only routes with `route_validation.valid=true`, printing for each route:\n1. `enzyme_annotated_retrosynthesis`\n2. all `retrosynthesis_reactions[].equation`\n3. the complete JSON\n\nI cannot provide the requested Top-10 routes without the actual tool outputs.",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"]\n已知底物集合 D：[\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+      "tool_calls": []
+    },
+    {
+      "attempt": 2,
+      "final_answer": "已完成端点受约束的酶催化多步逆合成路线搜索。规范化与受控/爆炸物检查均通过，随后仅调用一次 `EnzymeRetrosynthesisSearch`（`endpoint_mode=exact_set`，`use_database=true`，`use_model=true`，`search_algorithm=and_or_mcts`）。\n\n## 规范化结果（MoleculeInputNormalizer）\n\n- 目标物 A：\n  - 名称：(S)-Norlaudanosoline\n  - 数据库 ID：C02916\n  - canonical SMILES：`Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O`\n  - 分子式：C16H17NO4\n- 底物集合 D：\n  - Dopamine，C03758，canonical SMILES：`NCCc1ccc(O)c(O)c1`，分子式 C8H11NO2\n  - 3,4-Dihydroxyphenylacetaldehyde，C04043，canonical SMILES：`O=CCc1ccc(O)c(O)c1`，分子式 C8H8O3\n\n受控化学品检查：三者均与已知受控化学品相似度低，可继续。\n爆炸物检查：目标物无 GHS 爆炸性评级；两个底物均“not known to be explosive”。\n\n## 搜索设置\n\n```json\n{\n  \"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"],\n  \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"],\n  \"endpoint_mode\": \"exact_set\",\n  \"top_k\": 10,\n  \"search_algorithm\": \"and_or_mcts\",\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"max_model_calls\": 100\n  }\n}\n```\n\n搜索统计要点：`complete_routes_found=1`，`returned_route_count=1`，`top_k_shortfall=9`，原因 `SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES`。因此仅返回 1 条满足 `route_validation.valid=true` 的完整路线。\n\n---\n\n## Top-K 路线（仅 1 条有效路线）\n\n### Route 1\n\n`enzyme_annotated_retrosynthesis`：\n\n```\n(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\n```\n\n`retrosynthesis_reactions[].equation`：\n\n```\n(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\n```\n\n该步为 AND 反应，两个非辅因子前体均必须同时满足，且二者正好等于 D：\n\n- 3,4-Dihydroxyphenylacetaldehyde (C04043)\n- Dopamine (C03758)\n\n酶信息：\n\n- EC：4.2.1.78\n- 反应名：3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\n- 数据库反应 ID：R04084\n- 来源：DATABASE\n- 模板：null（未使用模型模板）\n\n路线验证：\n\n- `valid=true`\n- `connected=true`\n- `acyclic=true`\n- `endpoint_match=true`\n- `require_all_building_blocks=true`\n- `terminal_building_block_keys` 与 D 完全一致\n- `missing_building_block_keys=[]`\n- `extra_terminal_keys=[]`\n- `step_count=1`\n\n评分：\n\n- `route_score=0.86252`\n- `diversity_adjusted_score=0.86252`\n- `route_cost=0.237632`\n- `target_carbon_efficiency=1.0`\n- `main_branch_carbon_retention=1.0`\n- `major_organic_byproduct_penalty=0.0`\n- `currency_cofactor_count=0`\n\n---\n\n## 完整 JSON\n\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\n    \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"id\": \"C02916\",\n    \"name\": \"(S)-Norlaudanosoline\",\n    \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"formula\": \"C16H17NO4\",\n    \"charge\": null,\n    \"toxicity\": 0.251169,\n    \"generic\": false\n  },\n  \"building_blocks\": [\n    {\n      \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n      \"id\": \"C03758\",\n      \"name\": \"Dopamine\",\n      \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n      \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n      \"formula\": \"C8H11NO2\",\n      \"charge\": null,\n      \"toxicity\": 0.914453,\n      \"generic\": false\n    },\n    {\n      \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n      \"id\": \"C04043\",\n      \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n      \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n      \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n      \"formula\": \"C8H8O3\",\n      \"charge\": null,\n      \"toxicity\": 0.441115,\n      \"generic\": false\n    }\n  ],\n  \"endpoint_constraints\": {\n    \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"required_building_block_keys\": [\n      \"smi:NCCc1ccc(O)c(O)c1\",\n      \"smi:O=CCc1ccc(O)c(O)c1\"\n    ],\n    \"require_all_building_blocks\": true\n  },\n  \"route_count\": 1,\n  \"routes\": [\n    {\n      \"rank\": 1,\n      \"complete\": true,\n      \"all_noncurrency_leaves_solved\": true,\n      \"route_validation\": {\n        \"valid\": true,\n        \"connected\": true,\n        \"acyclic\": true,\n        \"endpoint_match\": true,\n        \"require_all_building_blocks\": true,\n        \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"required_building_block_keys\": [\n          \"smi:NCCc1ccc(O)c(O)c1\",\n          \"smi:O=CCc1ccc(O)c(O)c1\"\n        ],\n        \"terminal_building_block_keys\": [\n          \"smi:NCCc1ccc(O)c(O)c1\",\n          \"smi:O=CCc1ccc(O)c(O)c1\"\n        ],\n        \"missing_building_block_keys\": [],\n        \"extra_terminal_keys\": [],\n        \"reachable_step_count\": 1,\n        \"step_count\": 1,\n        \"duplicate_target_keys\": [],\n        \"disconnected_candidate_ids\": [],\n        \"cycle_paths\": [],\n        \"reasons\": []\n      },\n      \"route_score\": 0.86252,\n      \"diversity_adjusted_score\": 0.86252,\n      \"route_cost\": 0.237632,\n      \"route_score_components\": {\n        \"reaction_quality\": 0.7884926412848225,\n        \"target_carbon_efficiency\": 1.0,\n        \"inverse_major_byproduct_penalty\": 1.0,\n        \"inverse_cofactor_burden\": 1.0\n      },\n      \"target_carbon_efficiency\": 1.0,\n      \"main_branch_carbon_retention\": 1.0,\n      \"major_organic_byproduct_penalty\": 0.0,\n      \"major_organic_byproducts\": [],\n      \"currency_cofactor_count\": 0,\n      \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\",\n      \"atom_mapping_used\": false,\n      \"step_count\": 1,\n      \"backward_expansion_depth\": 0,\n      \"provenance_counts\": {\n        \"DATABASE\": 1,\n        \"MODEL\": 0,\n        \"BOTH\": 0\n      },\n      \"retrosynthesis\": \"(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)\",\n      \"enzyme_annotated_retrosynthesis\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\",\n      \"retrosynthesis_reactions\": [\n        {\n          \"retrosynthesis_step\": 1,\n          \"equation\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\",\n          \"target\": {\n            \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"id\": \"C02916\",\n            \"name\": \"(S)-Norlaudanosoline\",\n            \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"formula\": \"C16H17NO4\",\n            \"charge\": null,\n            \"toxicity\": 0.251169,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n              \"id\": \"C04043\",\n              \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n              \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H8O3\",\n              \"charge\": null,\n              \"toxicity\": 0.441115,\n              \"generic\": false\n            },\n            {\n              \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n              \"id\": \"C03758\",\n              \"name\": \"Dopamine\",\n              \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H11NO2\",\n              \"charge\": null,\n              \"toxicity\": 0.914453,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"4.2.1.78\"],\n            \"ec_display\": \"EC 4.2.1.78\",\n            \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\",\n            \"database_reaction_ids\": [\"R04084\"],\n            \"provenance\": \"DATABASE\",\n            \"template\": null\n          },\n          \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"\n        }\n      ],\n      \"forward_path\": \"3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)\",\n      \"steps\": [\n        {\n          \"step_number\": 1,\n          \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"provenance\": \"DATABASE\",\n          \"database_reaction_ids\": [\"R04084\"],\n          \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\",\n          \"stored_equation\": \"C04043 + C03758 <=> C02916 + C00001\",\n          \"stored_direction\": \"reversible\",\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"id\": \"C02916\",\n            \"name\": \"(S)-Norlaudanosoline\",\n            \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"formula\": \"C16H17NO4\",\n            \"charge\": null,\n            \"toxicity\": 0.251169,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n              \"id\": \"C04043\",\n              \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n              \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H8O3\",\n              \"charge\": null,\n              \"toxicity\": 0.441115,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            },\n            {\n              \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n              \"id\": \"C03758\",\n              \"name\": \"Dopamine\",\n              \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H11NO2\",\n              \"charge\": null,\n              \"toxicity\": 0.914453,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [\n            {\n              \"key\": \"smi:O\",\n              \"id\": \"C00001\",\n              \"name\": \"H2O\",\n              \"smiles\": \"O\",\n              \"canonical_smiles\": \"O\",\n              \"formula\": \"H2O\",\n              \"charge\": null,\n              \"toxicity\": 0.055944,\n              \"generic\": false,\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"ec_numbers\": [\"4.2.1.78\"],\n          \"subsystem\": \"KEGG\",\n          \"template\": null,\n          \"model_rank\": null,\n          \"score\": 0.812506,\n          \"cost\": 0.207632,\n          \"score_components\": {\n            \"database_support\": 0.97,\n            \"ec_consistency\": 1.0,\n            \"approx_structural_overlap\": 0.428571,\n            \"building_block_progress\": 1.0,\n            \"structural_similarity\": 0.341463\n          },\n          \"raw_metrics\": {\n            \"database_support\": 0.97,\n            \"model_score\": null,\n            \"structural_similarity\": 0.341463,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.428571,\n            \"feasibility\": null,\n            \"yield\": null,\n            \"toxicity\": 0.914453,\n            \"ec_consistency\": 1.0,\n            \"building_block_similarity\": 1.0,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": \"reversible\",\n            \"stored_forward_direction\": \"left_to_right\",\n            \"retrosynthesis_direction\": \"right_to_left\",\n            \"precursor_side\": \"left\",\n            \"target_side\": \"right\"\n          },\n          \"metric_provenance\": {\n            \"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\",\n            \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"\n          },\n          \"metadata\": {\n            \"precursor_side\": \"left\",\n            \"product_side\": \"right\",\n            \"stored_forward_direction\": \"left_to_right\",\n            \"retrosynthesis_direction\": \"right_to_left\",\n            \"atom_mapping_source\": \"NONE\",\n            \"lower_bound\": -1000.0,\n            \"upper_bound\": 1000.0,\n            \"gene_rule\": \"EC 4.2.1.78\",\n            \"id_origin\": \"source\",\n            \"participant_annotations\": [],\n            \"metric_provenance\": {\n              \"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\",\n              \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"database_support\": 0.25,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.03\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 8.0,\n            \"target_product_carbon\": 16.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        }\n      ]\n    }\n  ],\n  \"stats\": {\n    \"states_expanded\": 35,\n    \"states_generated\": 39,\n    \"duplicate_states_pruned\": 0,\n    \"beam_states_pruned\": 0,\n    \"dead_ends\": 29,\n    \"database_candidates\": 10,\n    \"forward_queries\": 170,\n    \"backward_queries\": 144,\n    \"model_candidates\": 549,\n    \"model_requests\": 144,\n    \"model_calls\": 29,\n    \"model_cache_hits\": 115,\n    \"model_failures\": 0,\n    \"fusion_candidates\": 545,\n    \"consensus_candidates\": 3,\n    \"candidates_filtered\": 527,\n    \"filter_reasons\": {\n      \"self_cycle\": 30,\n      \"generic_structure\": 37,\n      \"consecutive_model_only_limit\": 451,\n      \"route_cycle\": 9\n    },\n    \"forward_anchor_count\": 271,\n    \"forward_anchor_updates\": 284,\n    \"forward_anchor_cache_hits\": 0,\n    \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 1994,\n    \"forward_direct_solutions\": 1,\n    \"forward_anchor_stitched_solutions\": 0,\n    \"hybrid_backward_solutions\": 0,\n    \"search_phases\": [\n      \"PHASE_A_FORWARD_ANCHOR\",\n      \"PHASE_B_BACKWARD_HYBRID_SEARCH\",\n      \"PHASE_C_SOLUTION_MERGE\",\n      \"PHASE_D_ROUTE_SCORING\",\n      \"PHASE_E_DIVERSITY_RERANK\"\n    ],\n    \"requested_top_k\": 10,\n    \"warnings\": [],\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 1571,\n    \"mcts_selection_steps\": 1672,\n    \"mcts_expansion_nodes\": 39,\n    \"mcts_rollouts\": 1571,\n    \"mcts_rollout_steps\": 9,\n    \"mcts_backpropagations\": 1571,\n    \"mcts_tree_nodes\": 40,\n    \"mcts_max_tree_depth\": 4,\n    \"mcts_root_visits\": 1571,\n    \"mcts_root_mean_value\": 1.72223325,\n    \"mcts_best_reward\": 1.86252022,\n    \"endpoint_routes_rejected\": 19,\n    \"endpoint_route_rejection_reasons\": {\n      \"disconnected_steps\": 9,\n      \"multiple_producers_for_molecule\": 1,\n      \"terminal_building_block_mismatch\": 11\n    },\n    \"complete_routes_found\": 1,\n    \"solution_pool_size_before_rerank\": 1,\n    \"returned_route_count\": 1,\n    \"top_k_shortfall\": 9,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 1,\n    \"model_assisted_routes\": 0,\n    \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS\",\n    \"elapsed_seconds\": 567.138966,\n    \"database_cache\": {\n      \"hits\": 42206,\n      \"misses\": 2836,\n      \"normalizations\": 3606,\n      \"backward_queries\": 442,\n      \"forward_queries\": 591,\n      \"adjacency_index\": {\n        \"enabled\": true,\n        \"loaded\": true,\n        \"metabolites\": 36301,\n        \"reactions\": 23718,\n        \"reaction_sides\": 47434,\n        \"indexed_metabolites\": 16130,\n        \"hits\": 20578,\n        \"load_seconds\": 0.798801\n      }\n    },\n    \"model_cache\": {\n      \"hits\": 5482,\n      \"misses\": 457,\n      \"entries\": 457,\n      \"model\": \"biocyc\",\n      \"backend_mode\": \"neural_model\",\n      \"runtime_device\": \"cuda:0\"\n    }\n  },\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"respect_reaction_direction\": true,\n    \"allow_unknown_direction\": true,\n    \"require_all_building_blocks\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"forward_anchor_depth\": 6,\n    \"forward_anchor_max_nodes\": 5000,\n    \"database_top_k\": 20,\n    \"model_top_k\": 10,\n    \"candidate_beam_width\": 20,\n    \"global_beam_width\": 50,\n    \"top_k_routes\": 10,\n    \"solution_pool_multiplier\": 3,\n    \"max_states_per_signature\": 3,\n    \"max_forward_routes_per_node\": 10,\n    \"max_precursors_per_step\": 8,\n    \"max_model_only_steps\": 5,\n    \"max_consecutive_model_only_steps\": 2,\n    \"max_model_calls\": 100,\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_exploration_constant\": 1.4,\n    \"mcts_rollout_depth\": 3,\n    \"mcts_random_seed\": 100,\n    \"mcts_epsilon\": 0.1,\n    \"mcts_progressive_widening\": true,\n    \"mcts_progressive_widening_alpha\": 0.5,\n    \"mcts_progressive_widening_constant\": 2.0,\n    \"mcts_completion_bonus\": 1.0,\n    \"min_candidate_score\": 0.02,\n    \"min_model_score\": 0.0,\n    \"min_feasibility\": 0.0,\n    \"min_atom_conservation\": 0.0,\n    \"min_approx_structural_overlap\": 0.0,\n    \"max_toxicity\": 1.0,\n    \"require_ec\": false,\n    \"reject_generic_structures\": true,\n    \"heuristic_weight\": 0.35,\n    \"consensus_bonus\": 0.1,\n    \"database_preference_bonus\": 0.03,\n    \"model_only_penalty\": 0.25,\n    \"generic_structure_penalty\": 0.4,\n    \"unknown_direction_penalty\": 0.2,\n    \"auxiliary_precursor_penalty\": 0.04,\n    \"route_length_penalty\": 0.03,\n    \"diversity_penalty\": 0.15,\n    \"fusion_overlap_threshold\": 0.5,\n    \"score_epsilon\": 1e-08,\n    \"route_reaction_quality_weight\": 0.65,\n    \"route_carbon_efficiency_weight\": 0.25,\n    \"route_byproduct_weight\": 0.1,\n    \"route_cofactor_weight\": 0.0,\n    \"enable_forward_anchor_cache\": true,\n    \"forward_anchor_cache_size\": 16,\n    \"currency_metabolite_ids\": [\n      \"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\",\n      \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\",\n      \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\",\n      \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\",\n      \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"\n    ],\n    \"scoring_weights\": {\n      \"database_support\": 0.25,\n      \"model_score\": 0.15,\n      \"feasibility\": 0.15,\n      \"yield_score\": 0.0,\n      \"inverse_toxicity\": 0.0,\n      \"ec_consistency\": 0.1,\n      \"atom_conservation\": 0.1,\n      \"approx_structural_overlap\": 0.1,\n      \"building_block_progress\": 0.05,\n      \"structural_similarity\": 0.1\n    },\n    \"include_search_trace\": false\n  },\n  \"endpoint_task\": {\n    \"type\": \"target_to_exact_known_substrate_set\",\n    \"endpoint_mode\": \"exact_set\",\n    \"rooted\": true,\n    \"connected\": true,\n    \"acyclic\": true,\n    \"all_terminal_molecules_must_be_in_stock\": true,\n    \"terminal_set_must_equal_building_blocks\": true\n  },\n  \"candidate_generation\": {\n    \"database_enabled\": true,\n    \"model_enabled\": true,\n    \"model_backend\": \"neural_model\",\n    \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\",\n    \"performed_at_each_expanded_molecule\": true\n  },\n  \"search_algorithm\": {\n    \"name\": \"and_or_mcts\",\n    \"graph\": \"AND_OR_HYPERGRAPH\",\n    \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\",\n    \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\",\n    \"mcts\": {\n      \"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\",\n      \"expansion\": \"reaction AND node with all non-currency precursors\",\n      \"simulation\": \"bounded evaluator-guided rollout\",\n      \"backpropagation\": \"scalar route-quality reward\",\n      \"exploration_constant\": 1.4,\n      \"rollout_depth\": 3,\n      \"random_seed\": 100,\n      \"progressive_widening\": true\n    },\n    \"beam_width\": null\n  },\n  \"and_or_tree\": {\n    \"representation\": \"AND_OR_HYPERGRAPH\",\n    \"root_molecule_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"or_semantics\": \"choose one producing reaction for each molecule\",\n    \"and_semantics\": \"solve every non-currency precursor of the reaction\",\n    \"molecule_nodes\": [\n      {\n        \"node_id\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"node_type\": \"OR\",\n        \"role\": \"target\",\n        \"molecule\": {\n          \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"id\": \"C02916\",\n          \"name\": \"(S)-Norlaudanosoline\",\n          \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"formula\": \"C16H17NO4\",\n          \"charge\": null,\n          \"toxicity\": 0.251169,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:O=CCc1ccc(O)c(O)c1\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n          \"id\": \"C04043\",\n          \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n          \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n          \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n          \"formula\": \"C8H8O3\",\n          \"charge\": null,\n          \"toxicity\": 0.441115,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:NCCc1ccc(O)c(O)c1\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n          \"id\": \"C03758\",\n          \"name\": \"Dopamine\",\n          \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n          \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n          \"formula\": \"C8H11NO2\",\n          \"charge\": null,\n          \"toxicity\": 0.914453,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      }\n    ],\n    \"reaction_nodes\": [\n      {\n        \"node_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"node_type\": \"AND\",\n        \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"precursor_keys\": [\n          \"smi:O=CCc1ccc(O)c(O)c1\",\n          \"smi:NCCc1ccc(O)c(O)c1\"\n        ],\n        \"provenance\": \"DATABASE\",\n        \"database_reaction_ids\": [\"R04084\"],\n        \"ec_numbers\": [\"4.2.1.78\"],\n        \"step_score\": 0.812506,\n        \"step_cost\": 0.207632,\n        \"solution_routes\": [1]\n      }\n    ],\n    \"molecule_node_count\": 3,\n    \"reaction_node_count\": 1,\n    \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"\n  },\n  \"input\": {\n    \"target_count\": 1,\n    \"building_block_count\": 2,\n    \"library_sources\": [],\n    \"requested_endpoint_mode\": \"exact_set\"\n  }\n}\n```\n\n## 结论\n\n在 `endpoint_mode=exact_set` 约束下，仅找到 1 条有效完整路线。该路线以 (S)-Norlaudanosoline (C02916) 为根，经数据库反应 R04084（EC 4.2.1.78）一步逆合成，AND 前体为 3,4-Dihydroxyphenylacetaldehyde (C04043) 与 Dopamine (C03758)，二者恰好等于给定底物集合 D，无遗漏、无替换、无额外非辅因子叶节点。未使用模型预测步骤，未出现未知酶；酶信息来自本地数据库注释。",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"]\n已知底物集合 D：[\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。\n\n上一次尝试不符合测试协议：Agent did not normalize the exact targets/building_blocks before calling EnzymeRetrosynthesisSearch with endpoint_mode=exact_set and both use_database=true and use_model=true\n请纠正后重新调用工具。必须使用完整且精确的 targets、building_blocks，\n并明确设置 endpoint_mode=exact_set、use_database=true、use_model=true；\n不要只在文字中描述路线。\n",
+      "tool_calls": [
+        {
+          "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"matched_by\": \"smiles\", \"database_id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"NCCc1ccc(O)c(O)c1\", \"matched_by\": \"smiles\", \"database_id\": \"C03758\", \"name\": \"Dopamine\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"O=CCc1ccc(O)c(O)c1\", \"matched_by\": \"smiles\", \"database_id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}}",
+          "tool": "MoleculeInputNormalizer",
+          "tool_input": "{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}"
+        },
+        {
+          "observation": "57073-15-1",
+          "tool": "Mol2CAS",
+          "tool_input": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O"
+        },
+        {
+          "observation": "51-61-6",
+          "tool": "Mol2CAS",
+          "tool_input": "NCCc1ccc(O)c(O)c1"
+        },
+        {
+          "observation": "5707-55-1",
+          "tool": "Mol2CAS",
+          "tool_input": "O=CCc1ccc(O)c(O)c1"
+        },
+        {
+          "observation": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O has a low similarity (0.09375) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "ControlChemCheck",
+          "tool_input": "57073-15-1"
+        },
+        {
+          "observation": "NCCc1ccc(O)c(O)c1 has a low similarity (0.1143) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "ControlChemCheck",
+          "tool_input": "51-61-6"
+        },
+        {
+          "observation": "O=CCc1ccc(O)c(O)c1 has a low similarity (0.1471) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "ControlChemCheck",
+          "tool_input": "5707-55-1"
+        },
+        {
+          "observation": "Explosive Check Error. The molecule may not be assigned a GHS rating. ",
+          "tool": "ExplosiveCheck",
+          "tool_input": "57073-15-1"
+        },
+        {
+          "observation": "Molecule is not known to be explosive",
+          "tool": "ExplosiveCheck",
+          "tool_input": "51-61-6"
+        },
+        {
+          "observation": "Molecule is not known to be explosive",
+          "tool": "ExplosiveCheck",
+          "tool_input": "5707-55-1"
+        },
+        {
+          "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false}, {\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"required_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"require_all_building_blocks\": true}, \"route_count\": 1, \"routes\": [{\"rank\": 1, \"complete\": true, \"all_noncurrency_leaves_solved\": true, \"route_validation\": {\"valid\": true, \"connected\": true, \"acyclic\": true, \"endpoint_match\": true, \"require_all_building_blocks\": true, \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"required_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"terminal_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"missing_building_block_keys\": [], \"extra_terminal_keys\": [], \"reachable_step_count\": 1, \"step_count\": 1, \"duplicate_target_keys\": [], \"disconnected_candidate_ids\": [], \"cycle_paths\": [], \"reasons\": []}, \"route_score\": 0.86252, \"diversity_adjusted_score\": 0.86252, \"route_cost\": 0.237632, \"route_score_components\": {\"reaction_quality\": 0.7884926412848225, \"target_carbon_efficiency\": 1.0, \"inverse_major_byproduct_penalty\": 1.0, \"inverse_cofactor_burden\": 1.0}, \"target_carbon_efficiency\": 1.0, \"main_branch_carbon_retention\": 1.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"currency_cofactor_count\": 0, \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\", \"atom_mapping_used\": false, \"step_count\": 1, \"backward_expansion_depth\": 0, \"provenance_counts\": {\"DATABASE\": 1, \"MODEL\": 0, \"BOTH\": 0}, \"retrosynthesis\": \"(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)\", \"enzyme_annotated_retrosynthesis\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\", \"retrosynthesis_reactions\": [{\"retrosynthesis_step\": 1, \"equation\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\", \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false}, {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"4.2.1.78\"], \"ec_display\": \"EC 4.2.1.78\", \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\", \"database_reaction_ids\": [\"R04084\"], \"provenance\": \"DATABASE\", \"template\": null}, \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"}], \"forward_path\": \"3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)\", \"steps\": [{\"step_number\": 1, \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"provenance\": \"DATABASE\", \"database_reaction_ids\": [\"R04084\"], \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\", \"stored_equation\": \"C04043 + C03758 <=> C02916 + C00001\", \"stored_direction\": \"reversible\", \"direction_uncertain\": false, \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"precursors\": [{\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [{\"key\": \"smi:O\", \"id\": \"C00001\", \"name\": \"H2O\", \"smiles\": \"O\", \"canonical_smiles\": \"O\", \"formula\": \"H2O\", \"charge\": null, \"toxicity\": 0.055944, \"generic\": false, \"coefficient\": \"1\"}], \"ec_numbers\": [\"4.2.1.78\"], \"subsystem\": \"KEGG\", \"template\": null, \"model_rank\": null, \"score\": 0.812506, \"cost\": 0.207632, \"score_components\": {\"database_support\": 0.97, \"ec_consistency\": 1.0, \"approx_structural_overlap\": 0.428571, \"building_block_progress\": 1.0, \"structural_similarity\": 0.341463}, \"raw_metrics\": {\"database_support\": 0.97, \"model_score\": null, \"structural_similarity\": 0.341463, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.428571, \"feasibility\": null, \"yield\": null, \"toxicity\": 0.914453, \"ec_consistency\": 1.0, \"building_block_similarity\": 1.0, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": \"reversible\", \"stored_forward_direction\": \"left_to_right\", \"retrosynthesis_direction\": \"right_to_left\", \"precursor_side\": \"left\", \"target_side\": \"right\"}, \"metric_provenance\": {\"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\", \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"}, \"metadata\": {\"precursor_side\": \"left\", \"product_side\": \"right\", \"stored_forward_direction\": \"left_to_right\", \"retrosynthesis_direction\": \"right_to_left\", \"atom_mapping_source\": \"NONE\", \"lower_bound\": -1000.0, \"upper_bound\": 1000.0, \"gene_rule\": \"EC 4.2.1.78\", \"id_origin\": \"source\", \"participant_annotations\": [], \"metric_provenance\": {\"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\", \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"database_support\": 0.25, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.03}}, \"carbon_branch\": {\"main_precursor_carbon\": 8.0, \"target_product_carbon\": 16.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}]}], \"stats\": {\"states_expanded\": 35, \"states_generated\": 39, \"duplicate_states_pruned\": 0, \"beam_states_pruned\": 0, \"dead_ends\": 29, \"database_candidates\": 10, \"forward_queries\": 170, \"backward_queries\": 144, \"model_candidates\": 549, \"model_requests\": 144, \"model_calls\": 29, \"model_cache_hits\": 115, \"model_failures\": 0, \"fusion_candidates\": 545, \"consensus_candidates\": 3, \"candidates_filtered\": 527, \"filter_reasons\": {\"self_cycle\": 30, \"generic_structure\": 37, \"consecutive_model_only_limit\": 451, \"route_cycle\": 9}, \"forward_anchor_count\": 271, \"forward_anchor_updates\": 284, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 1994, \"forward_direct_solutions\": 1, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 1571, \"mcts_selection_steps\": 1672, \"mcts_expansion_nodes\": 39, \"mcts_rollouts\": 1571, \"mcts_rollout_steps\": 9, \"mcts_backpropagations\": 1571, \"mcts_tree_nodes\": 40, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 1571, \"mcts_root_mean_value\": 1.72223325, \"mcts_best_reward\": 1.86252022, \"endpoint_routes_rejected\": 19, \"endpoint_route_rejection_reasons\": {\"disconnected_steps\": 9, \"multiple_producers_for_molecule\": 1, \"terminal_building_block_mismatch\": 11}, \"complete_routes_found\": 1, \"solution_pool_size_before_rerank\": 1, \"returned_route_count\": 1, \"top_k_shortfall\": 9, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 1, \"model_assisted_routes\": 0, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS\", \"elapsed_seconds\": 567.138966, \"database_cache\": {\"hits\": 42206, \"misses\": 2836, \"normalizations\": 3606, \"backward_queries\": 442, \"forward_queries\": 591, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 20578, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 5482, \"misses\": 457, \"entries\": 457, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [{\"node_id\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"node_type\": \"OR\", \"role\": \"target\", \"molecule\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:O=CCc1ccc(O)c(O)c1\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}, {\"node_id\": \"smi:NCCc1ccc(O)c(O)c1\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}], \"reaction_nodes\": [{\"node_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"node_type\": \"AND\", \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"precursor_keys\": [\"smi:O=CCc1ccc(O)c(O)c1\", \"smi:NCCc1ccc(O)c(O)c1\"], \"provenance\": \"DATABASE\", \"database_reaction_ids\": [\"R04084\"], \"ec_numbers\": [\"4.2.1.78\"], \"step_score\": 0.812506, \"step_cost\": 0.207632, \"solution_routes\": [1]}], \"molecule_node_count\": 3, \"reaction_node_count\": 1, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+          "tool": "EnzymeRetrosynthesisSearch",
+          "tool_input": "{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+        }
+      ]
+    }
+  ],
+  "final_answer": "已完成端点受约束的酶催化多步逆合成路线搜索。规范化与受控/爆炸物检查均通过，随后仅调用一次 `EnzymeRetrosynthesisSearch`（`endpoint_mode=exact_set`，`use_database=true`，`use_model=true`，`search_algorithm=and_or_mcts`）。\n\n## 规范化结果（MoleculeInputNormalizer）\n\n- 目标物 A：\n  - 名称：(S)-Norlaudanosoline\n  - 数据库 ID：C02916\n  - canonical SMILES：`Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O`\n  - 分子式：C16H17NO4\n- 底物集合 D：\n  - Dopamine，C03758，canonical SMILES：`NCCc1ccc(O)c(O)c1`，分子式 C8H11NO2\n  - 3,4-Dihydroxyphenylacetaldehyde，C04043，canonical SMILES：`O=CCc1ccc(O)c(O)c1`，分子式 C8H8O3\n\n受控化学品检查：三者均与已知受控化学品相似度低，可继续。\n爆炸物检查：目标物无 GHS 爆炸性评级；两个底物均“not known to be explosive”。\n\n## 搜索设置\n\n```json\n{\n  \"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"],\n  \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"],\n  \"endpoint_mode\": \"exact_set\",\n  \"top_k\": 10,\n  \"search_algorithm\": \"and_or_mcts\",\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"max_model_calls\": 100\n  }\n}\n```\n\n搜索统计要点：`complete_routes_found=1`，`returned_route_count=1`，`top_k_shortfall=9`，原因 `SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES`。因此仅返回 1 条满足 `route_validation.valid=true` 的完整路线。\n\n---\n\n## Top-K 路线（仅 1 条有效路线）\n\n### Route 1\n\n`enzyme_annotated_retrosynthesis`：\n\n```\n(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\n```\n\n`retrosynthesis_reactions[].equation`：\n\n```\n(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\n```\n\n该步为 AND 反应，两个非辅因子前体均必须同时满足，且二者正好等于 D：\n\n- 3,4-Dihydroxyphenylacetaldehyde (C04043)\n- Dopamine (C03758)\n\n酶信息：\n\n- EC：4.2.1.78\n- 反应名：3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\n- 数据库反应 ID：R04084\n- 来源：DATABASE\n- 模板：null（未使用模型模板）\n\n路线验证：\n\n- `valid=true`\n- `connected=true`\n- `acyclic=true`\n- `endpoint_match=true`\n- `require_all_building_blocks=true`\n- `terminal_building_block_keys` 与 D 完全一致\n- `missing_building_block_keys=[]`\n- `extra_terminal_keys=[]`\n- `step_count=1`\n\n评分：\n\n- `route_score=0.86252`\n- `diversity_adjusted_score=0.86252`\n- `route_cost=0.237632`\n- `target_carbon_efficiency=1.0`\n- `main_branch_carbon_retention=1.0`\n- `major_organic_byproduct_penalty=0.0`\n- `currency_cofactor_count=0`\n\n---\n\n## 完整 JSON\n\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\n    \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"id\": \"C02916\",\n    \"name\": \"(S)-Norlaudanosoline\",\n    \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"formula\": \"C16H17NO4\",\n    \"charge\": null,\n    \"toxicity\": 0.251169,\n    \"generic\": false\n  },\n  \"building_blocks\": [\n    {\n      \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n      \"id\": \"C03758\",\n      \"name\": \"Dopamine\",\n      \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n      \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n      \"formula\": \"C8H11NO2\",\n      \"charge\": null,\n      \"toxicity\": 0.914453,\n      \"generic\": false\n    },\n    {\n      \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n      \"id\": \"C04043\",\n      \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n      \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n      \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n      \"formula\": \"C8H8O3\",\n      \"charge\": null,\n      \"toxicity\": 0.441115,\n      \"generic\": false\n    }\n  ],\n  \"endpoint_constraints\": {\n    \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"required_building_block_keys\": [\n      \"smi:NCCc1ccc(O)c(O)c1\",\n      \"smi:O=CCc1ccc(O)c(O)c1\"\n    ],\n    \"require_all_building_blocks\": true\n  },\n  \"route_count\": 1,\n  \"routes\": [\n    {\n      \"rank\": 1,\n      \"complete\": true,\n      \"all_noncurrency_leaves_solved\": true,\n      \"route_validation\": {\n        \"valid\": true,\n        \"connected\": true,\n        \"acyclic\": true,\n        \"endpoint_match\": true,\n        \"require_all_building_blocks\": true,\n        \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"required_building_block_keys\": [\n          \"smi:NCCc1ccc(O)c(O)c1\",\n          \"smi:O=CCc1ccc(O)c(O)c1\"\n        ],\n        \"terminal_building_block_keys\": [\n          \"smi:NCCc1ccc(O)c(O)c1\",\n          \"smi:O=CCc1ccc(O)c(O)c1\"\n        ],\n        \"missing_building_block_keys\": [],\n        \"extra_terminal_keys\": [],\n        \"reachable_step_count\": 1,\n        \"step_count\": 1,\n        \"duplicate_target_keys\": [],\n        \"disconnected_candidate_ids\": [],\n        \"cycle_paths\": [],\n        \"reasons\": []\n      },\n      \"route_score\": 0.86252,\n      \"diversity_adjusted_score\": 0.86252,\n      \"route_cost\": 0.237632,\n      \"route_score_components\": {\n        \"reaction_quality\": 0.7884926412848225,\n        \"target_carbon_efficiency\": 1.0,\n        \"inverse_major_byproduct_penalty\": 1.0,\n        \"inverse_cofactor_burden\": 1.0\n      },\n      \"target_carbon_efficiency\": 1.0,\n      \"main_branch_carbon_retention\": 1.0,\n      \"major_organic_byproduct_penalty\": 0.0,\n      \"major_organic_byproducts\": [],\n      \"currency_cofactor_count\": 0,\n      \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\",\n      \"atom_mapping_used\": false,\n      \"step_count\": 1,\n      \"backward_expansion_depth\": 0,\n      \"provenance_counts\": {\n        \"DATABASE\": 1,\n        \"MODEL\": 0,\n        \"BOTH\": 0\n      },\n      \"retrosynthesis\": \"(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)\",\n      \"enzyme_annotated_retrosynthesis\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\",\n      \"retrosynthesis_reactions\": [\n        {\n          \"retrosynthesis_step\": 1,\n          \"equation\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\",\n          \"target\": {\n            \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"id\": \"C02916\",\n            \"name\": \"(S)-Norlaudanosoline\",\n            \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"formula\": \"C16H17NO4\",\n            \"charge\": null,\n            \"toxicity\": 0.251169,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n              \"id\": \"C04043\",\n              \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n              \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H8O3\",\n              \"charge\": null,\n              \"toxicity\": 0.441115,\n              \"generic\": false\n            },\n            {\n              \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n              \"id\": \"C03758\",\n              \"name\": \"Dopamine\",\n              \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H11NO2\",\n              \"charge\": null,\n              \"toxicity\": 0.914453,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"4.2.1.78\"],\n            \"ec_display\": \"EC 4.2.1.78\",\n            \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\",\n            \"database_reaction_ids\": [\"R04084\"],\n            \"provenance\": \"DATABASE\",\n            \"template\": null\n          },\n          \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"\n        }\n      ],\n      \"forward_path\": \"3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)\",\n      \"steps\": [\n        {\n          \"step_number\": 1,\n          \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"provenance\": \"DATABASE\",\n          \"database_reaction_ids\": [\"R04084\"],\n          \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\",\n          \"stored_equation\": \"C04043 + C03758 <=> C02916 + C00001\",\n          \"stored_direction\": \"reversible\",\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"id\": \"C02916\",\n            \"name\": \"(S)-Norlaudanosoline\",\n            \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n            \"formula\": \"C16H17NO4\",\n            \"charge\": null,\n            \"toxicity\": 0.251169,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n              \"id\": \"C04043\",\n              \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n              \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H8O3\",\n              \"charge\": null,\n              \"toxicity\": 0.441115,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            },\n            {\n              \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n              \"id\": \"C03758\",\n              \"name\": \"Dopamine\",\n              \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n              \"formula\": \"C8H11NO2\",\n              \"charge\": null,\n              \"toxicity\": 0.914453,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [\n            {\n              \"key\": \"smi:O\",\n              \"id\": \"C00001\",\n              \"name\": \"H2O\",\n              \"smiles\": \"O\",\n              \"canonical_smiles\": \"O\",\n              \"formula\": \"H2O\",\n              \"charge\": null,\n              \"toxicity\": 0.055944,\n              \"generic\": false,\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"ec_numbers\": [\"4.2.1.78\"],\n          \"subsystem\": \"KEGG\",\n          \"template\": null,\n          \"model_rank\": null,\n          \"score\": 0.812506,\n          \"cost\": 0.207632,\n          \"score_components\": {\n            \"database_support\": 0.97,\n            \"ec_consistency\": 1.0,\n            \"approx_structural_overlap\": 0.428571,\n            \"building_block_progress\": 1.0,\n            \"structural_similarity\": 0.341463\n          },\n          \"raw_metrics\": {\n            \"database_support\": 0.97,\n            \"model_score\": null,\n            \"structural_similarity\": 0.341463,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.428571,\n            \"feasibility\": null,\n            \"yield\": null,\n            \"toxicity\": 0.914453,\n            \"ec_consistency\": 1.0,\n            \"building_block_similarity\": 1.0,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": \"reversible\",\n            \"stored_forward_direction\": \"left_to_right\",\n            \"retrosynthesis_direction\": \"right_to_left\",\n            \"precursor_side\": \"left\",\n            \"target_side\": \"right\"\n          },\n          \"metric_provenance\": {\n            \"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\",\n            \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"\n          },\n          \"metadata\": {\n            \"precursor_side\": \"left\",\n            \"product_side\": \"right\",\n            \"stored_forward_direction\": \"left_to_right\",\n            \"retrosynthesis_direction\": \"right_to_left\",\n            \"atom_mapping_source\": \"NONE\",\n            \"lower_bound\": -1000.0,\n            \"upper_bound\": 1000.0,\n            \"gene_rule\": \"EC 4.2.1.78\",\n            \"id_origin\": \"source\",\n            \"participant_annotations\": [],\n            \"metric_provenance\": {\n              \"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\",\n              \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"database_support\": 0.25,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.03\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 8.0,\n            \"target_product_carbon\": 16.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        }\n      ]\n    }\n  ],\n  \"stats\": {\n    \"states_expanded\": 35,\n    \"states_generated\": 39,\n    \"duplicate_states_pruned\": 0,\n    \"beam_states_pruned\": 0,\n    \"dead_ends\": 29,\n    \"database_candidates\": 10,\n    \"forward_queries\": 170,\n    \"backward_queries\": 144,\n    \"model_candidates\": 549,\n    \"model_requests\": 144,\n    \"model_calls\": 29,\n    \"model_cache_hits\": 115,\n    \"model_failures\": 0,\n    \"fusion_candidates\": 545,\n    \"consensus_candidates\": 3,\n    \"candidates_filtered\": 527,\n    \"filter_reasons\": {\n      \"self_cycle\": 30,\n      \"generic_structure\": 37,\n      \"consecutive_model_only_limit\": 451,\n      \"route_cycle\": 9\n    },\n    \"forward_anchor_count\": 271,\n    \"forward_anchor_updates\": 284,\n    \"forward_anchor_cache_hits\": 0,\n    \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 1994,\n    \"forward_direct_solutions\": 1,\n    \"forward_anchor_stitched_solutions\": 0,\n    \"hybrid_backward_solutions\": 0,\n    \"search_phases\": [\n      \"PHASE_A_FORWARD_ANCHOR\",\n      \"PHASE_B_BACKWARD_HYBRID_SEARCH\",\n      \"PHASE_C_SOLUTION_MERGE\",\n      \"PHASE_D_ROUTE_SCORING\",\n      \"PHASE_E_DIVERSITY_RERANK\"\n    ],\n    \"requested_top_k\": 10,\n    \"warnings\": [],\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 1571,\n    \"mcts_selection_steps\": 1672,\n    \"mcts_expansion_nodes\": 39,\n    \"mcts_rollouts\": 1571,\n    \"mcts_rollout_steps\": 9,\n    \"mcts_backpropagations\": 1571,\n    \"mcts_tree_nodes\": 40,\n    \"mcts_max_tree_depth\": 4,\n    \"mcts_root_visits\": 1571,\n    \"mcts_root_mean_value\": 1.72223325,\n    \"mcts_best_reward\": 1.86252022,\n    \"endpoint_routes_rejected\": 19,\n    \"endpoint_route_rejection_reasons\": {\n      \"disconnected_steps\": 9,\n      \"multiple_producers_for_molecule\": 1,\n      \"terminal_building_block_mismatch\": 11\n    },\n    \"complete_routes_found\": 1,\n    \"solution_pool_size_before_rerank\": 1,\n    \"returned_route_count\": 1,\n    \"top_k_shortfall\": 9,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 1,\n    \"model_assisted_routes\": 0,\n    \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS\",\n    \"elapsed_seconds\": 567.138966,\n    \"database_cache\": {\n      \"hits\": 42206,\n      \"misses\": 2836,\n      \"normalizations\": 3606,\n      \"backward_queries\": 442,\n      \"forward_queries\": 591,\n      \"adjacency_index\": {\n        \"enabled\": true,\n        \"loaded\": true,\n        \"metabolites\": 36301,\n        \"reactions\": 23718,\n        \"reaction_sides\": 47434,\n        \"indexed_metabolites\": 16130,\n        \"hits\": 20578,\n        \"load_seconds\": 0.798801\n      }\n    },\n    \"model_cache\": {\n      \"hits\": 5482,\n      \"misses\": 457,\n      \"entries\": 457,\n      \"model\": \"biocyc\",\n      \"backend_mode\": \"neural_model\",\n      \"runtime_device\": \"cuda:0\"\n    }\n  },\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"respect_reaction_direction\": true,\n    \"allow_unknown_direction\": true,\n    \"require_all_building_blocks\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"forward_anchor_depth\": 6,\n    \"forward_anchor_max_nodes\": 5000,\n    \"database_top_k\": 20,\n    \"model_top_k\": 10,\n    \"candidate_beam_width\": 20,\n    \"global_beam_width\": 50,\n    \"top_k_routes\": 10,\n    \"solution_pool_multiplier\": 3,\n    \"max_states_per_signature\": 3,\n    \"max_forward_routes_per_node\": 10,\n    \"max_precursors_per_step\": 8,\n    \"max_model_only_steps\": 5,\n    \"max_consecutive_model_only_steps\": 2,\n    \"max_model_calls\": 100,\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_exploration_constant\": 1.4,\n    \"mcts_rollout_depth\": 3,\n    \"mcts_random_seed\": 100,\n    \"mcts_epsilon\": 0.1,\n    \"mcts_progressive_widening\": true,\n    \"mcts_progressive_widening_alpha\": 0.5,\n    \"mcts_progressive_widening_constant\": 2.0,\n    \"mcts_completion_bonus\": 1.0,\n    \"min_candidate_score\": 0.02,\n    \"min_model_score\": 0.0,\n    \"min_feasibility\": 0.0,\n    \"min_atom_conservation\": 0.0,\n    \"min_approx_structural_overlap\": 0.0,\n    \"max_toxicity\": 1.0,\n    \"require_ec\": false,\n    \"reject_generic_structures\": true,\n    \"heuristic_weight\": 0.35,\n    \"consensus_bonus\": 0.1,\n    \"database_preference_bonus\": 0.03,\n    \"model_only_penalty\": 0.25,\n    \"generic_structure_penalty\": 0.4,\n    \"unknown_direction_penalty\": 0.2,\n    \"auxiliary_precursor_penalty\": 0.04,\n    \"route_length_penalty\": 0.03,\n    \"diversity_penalty\": 0.15,\n    \"fusion_overlap_threshold\": 0.5,\n    \"score_epsilon\": 1e-08,\n    \"route_reaction_quality_weight\": 0.65,\n    \"route_carbon_efficiency_weight\": 0.25,\n    \"route_byproduct_weight\": 0.1,\n    \"route_cofactor_weight\": 0.0,\n    \"enable_forward_anchor_cache\": true,\n    \"forward_anchor_cache_size\": 16,\n    \"currency_metabolite_ids\": [\n      \"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\",\n      \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\",\n      \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\",\n      \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\",\n      \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"\n    ],\n    \"scoring_weights\": {\n      \"database_support\": 0.25,\n      \"model_score\": 0.15,\n      \"feasibility\": 0.15,\n      \"yield_score\": 0.0,\n      \"inverse_toxicity\": 0.0,\n      \"ec_consistency\": 0.1,\n      \"atom_conservation\": 0.1,\n      \"approx_structural_overlap\": 0.1,\n      \"building_block_progress\": 0.05,\n      \"structural_similarity\": 0.1\n    },\n    \"include_search_trace\": false\n  },\n  \"endpoint_task\": {\n    \"type\": \"target_to_exact_known_substrate_set\",\n    \"endpoint_mode\": \"exact_set\",\n    \"rooted\": true,\n    \"connected\": true,\n    \"acyclic\": true,\n    \"all_terminal_molecules_must_be_in_stock\": true,\n    \"terminal_set_must_equal_building_blocks\": true\n  },\n  \"candidate_generation\": {\n    \"database_enabled\": true,\n    \"model_enabled\": true,\n    \"model_backend\": \"neural_model\",\n    \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\",\n    \"performed_at_each_expanded_molecule\": true\n  },\n  \"search_algorithm\": {\n    \"name\": \"and_or_mcts\",\n    \"graph\": \"AND_OR_HYPERGRAPH\",\n    \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\",\n    \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\",\n    \"mcts\": {\n      \"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\",\n      \"expansion\": \"reaction AND node with all non-currency precursors\",\n      \"simulation\": \"bounded evaluator-guided rollout\",\n      \"backpropagation\": \"scalar route-quality reward\",\n      \"exploration_constant\": 1.4,\n      \"rollout_depth\": 3,\n      \"random_seed\": 100,\n      \"progressive_widening\": true\n    },\n    \"beam_width\": null\n  },\n  \"and_or_tree\": {\n    \"representation\": \"AND_OR_HYPERGRAPH\",\n    \"root_molecule_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n    \"or_semantics\": \"choose one producing reaction for each molecule\",\n    \"and_semantics\": \"solve every non-currency precursor of the reaction\",\n    \"molecule_nodes\": [\n      {\n        \"node_id\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"node_type\": \"OR\",\n        \"role\": \"target\",\n        \"molecule\": {\n          \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"id\": \"C02916\",\n          \"name\": \"(S)-Norlaudanosoline\",\n          \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n          \"formula\": \"C16H17NO4\",\n          \"charge\": null,\n          \"toxicity\": 0.251169,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:O=CCc1ccc(O)c(O)c1\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:O=CCc1ccc(O)c(O)c1\",\n          \"id\": \"C04043\",\n          \"name\": \"3,4-Dihydroxyphenylacetaldehyde\",\n          \"smiles\": \"O=CCc1ccc(O)c(O)c1\",\n          \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\",\n          \"formula\": \"C8H8O3\",\n          \"charge\": null,\n          \"toxicity\": 0.441115,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:NCCc1ccc(O)c(O)c1\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:NCCc1ccc(O)c(O)c1\",\n          \"id\": \"C03758\",\n          \"name\": \"Dopamine\",\n          \"smiles\": \"NCCc1ccc(O)c(O)c1\",\n          \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\",\n          \"formula\": \"C8H11NO2\",\n          \"charge\": null,\n          \"toxicity\": 0.914453,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      }\n    ],\n    \"reaction_nodes\": [\n      {\n        \"node_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"node_type\": \"AND\",\n        \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\",\n        \"precursor_keys\": [\n          \"smi:O=CCc1ccc(O)c(O)c1\",\n          \"smi:NCCc1ccc(O)c(O)c1\"\n        ],\n        \"provenance\": \"DATABASE\",\n        \"database_reaction_ids\": [\"R04084\"],\n        \"ec_numbers\": [\"4.2.1.78\"],\n        \"step_score\": 0.812506,\n        \"step_cost\": 0.207632,\n        \"solution_routes\": [1]\n      }\n    ],\n    \"molecule_node_count\": 3,\n    \"reaction_node_count\": 1,\n    \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"\n  },\n  \"input\": {\n    \"target_count\": 1,\n    \"building_block_count\": 2,\n    \"library_sources\": [],\n    \"requested_endpoint_mode\": \"exact_set\"\n  }\n}\n```\n\n## 结论\n\n在 `endpoint_mode=exact_set` 约束下，仅找到 1 条有效完整路线。该路线以 (S)-Norlaudanosoline (C02916) 为根，经数据库反应 R04084（EC 4.2.1.78）一步逆合成，AND 前体为 3,4-Dihydroxyphenylacetaldehyde (C04043) 与 Dopamine (C03758)，二者恰好等于给定底物集合 D，无遗漏、无替换、无额外非辅因子叶节点。未使用模型预测步骤，未出现未知酶；酶信息来自本地数据库注释。",
+  "prediction": {
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "mode": "database+model",
+    "ok": true,
+    "route_count": 1,
+    "routes": [
+      {
+        "all_noncurrency_leaves_solved": true,
+        "atom_mapping_used": false,
+        "backward_expansion_depth": 0,
+        "carbon_evaluation_method": "MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+        "complete": true,
+        "currency_cofactor_count": 0,
+        "diversity_adjusted_score": 0.86252,
+        "enzyme_annotated_retrosynthesis": "(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)",
+        "forward_path": "3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)",
+        "main_branch_carbon_retention": 1.0,
+        "major_organic_byproduct_penalty": 0.0,
+        "major_organic_byproducts": [],
+        "provenance_counts": {
+          "BOTH": 0,
+          "DATABASE": 1,
+          "MODEL": 0
+        },
+        "rank": 1,
+        "retrosynthesis": "(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)",
+        "retrosynthesis_reactions": [
+          {
+            "candidate_id": "db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [
+                "R04084"
+              ],
+              "ec_display": "EC 4.2.1.78",
+              "ec_numbers": [
+                "4.2.1.78"
+              ],
+              "provenance": "DATABASE",
+              "reaction_name": "3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)",
+              "template": null
+            },
+            "equation": "(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+                "charge": null,
+                "formula": "C8H8O3",
+                "generic": false,
+                "id": "C04043",
+                "key": "smi:O=CCc1ccc(O)c(O)c1",
+                "name": "3,4-Dihydroxyphenylacetaldehyde",
+                "smiles": "O=CCc1ccc(O)c(O)c1",
+                "toxicity": 0.441115
+              },
+              {
+                "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+                "charge": null,
+                "formula": "C8H11NO2",
+                "generic": false,
+                "id": "C03758",
+                "key": "smi:NCCc1ccc(O)c(O)c1",
+                "name": "Dopamine",
+                "smiles": "NCCc1ccc(O)c(O)c1",
+                "toxicity": 0.914453
+              }
+            ],
+            "retrosynthesis_step": 1,
+            "target": {
+              "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "charge": null,
+              "formula": "C16H17NO4",
+              "generic": false,
+              "id": "C02916",
+              "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "name": "(S)-Norlaudanosoline",
+              "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "toxicity": 0.251169
+            }
+          }
+        ],
+        "route_cost": 0.237632,
+        "route_score": 0.86252,
+        "route_score_components": {
+          "inverse_cofactor_burden": 1.0,
+          "inverse_major_byproduct_penalty": 1.0,
+          "reaction_quality": 0.7884926412848225,
+          "target_carbon_efficiency": 1.0
+        },
+        "route_validation": {
+          "acyclic": true,
+          "connected": true,
+          "cycle_paths": [],
+          "disconnected_candidate_ids": [],
+          "duplicate_target_keys": [],
+          "endpoint_match": true,
+          "extra_terminal_keys": [],
+          "missing_building_block_keys": [],
+          "reachable_step_count": 1,
+          "reasons": [],
+          "require_all_building_blocks": true,
+          "required_building_block_keys": [
+            "smi:NCCc1ccc(O)c(O)c1",
+            "smi:O=CCc1ccc(O)c(O)c1"
+          ],
+          "step_count": 1,
+          "target_key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+          "terminal_building_block_keys": [
+            "smi:NCCc1ccc(O)c(O)c1",
+            "smi:O=CCc1ccc(O)c(O)c1"
+          ],
+          "valid": true
+        },
+        "step_count": 1,
+        "steps": [
+          {
+            "candidate_id": "db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 8.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 16.0
+            },
+            "cost": 0.207632,
+            "database_reaction_ids": [
+              "R04084"
+            ],
+            "direction_semantics": {
+              "precursor_side": "left",
+              "retrosynthesis_direction": "right_to_left",
+              "stored_forward_direction": "left_to_right",
+              "stored_reaction_direction": "reversible",
+              "target_side": "right"
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "4.2.1.78"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "gene_rule": "EC 4.2.1.78",
+              "id_origin": "source",
+              "lower_bound": -1000.0,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "database_support": "LOCAL_SQLITE_REACTION_ANNOTATION",
+                "structural_similarity": "RDKIT_MORGAN_TANIMOTO",
+                "toxicity": "LOCAL_DATABASE_UNCALIBRATED_SCALAR"
+              },
+              "participant_annotations": [],
+              "precursor_side": "left",
+              "product_side": "right",
+              "retrosynthesis_direction": "right_to_left",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "database_support": 0.25,
+                  "ec_consistency": 0.1,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.03
+              },
+              "stored_forward_direction": "left_to_right",
+              "upper_bound": 1000.0
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "database_support": "LOCAL_SQLITE_REACTION_ANNOTATION",
+              "structural_similarity": "RDKIT_MORGAN_TANIMOTO",
+              "toxicity": "LOCAL_DATABASE_UNCALIBRATED_SCALAR"
+            },
+            "model_rank": null,
+            "other_products": [
+              {
+                "canonical_smiles": "O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "H2O",
+                "generic": false,
+                "id": "C00001",
+                "key": "smi:O",
+                "name": "H2O",
+                "smiles": "O",
+                "toxicity": 0.055944
+              }
+            ],
+            "precursors": [
+              {
+                "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "C8H8O3",
+                "generic": false,
+                "id": "C04043",
+                "key": "smi:O=CCc1ccc(O)c(O)c1",
+                "name": "3,4-Dihydroxyphenylacetaldehyde",
+                "role": "main",
+                "smiles": "O=CCc1ccc(O)c(O)c1",
+                "toxicity": 0.441115
+              },
+              {
+                "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "C8H11NO2",
+                "generic": false,
+                "id": "C03758",
+                "key": "smi:NCCc1ccc(O)c(O)c1",
+                "name": "Dopamine",
+                "role": "main",
+                "smiles": "NCCc1ccc(O)c(O)c1",
+                "toxicity": 0.914453
+              }
+            ],
+            "provenance": "DATABASE",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.428571,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 1.0,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": 0.97,
+              "ec_consistency": 1.0,
+              "feasibility": null,
+              "model_score": null,
+              "structural_similarity": 0.341463,
+              "toxicity": 0.914453,
+              "yield": null
+            },
+            "reaction_name": "3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)",
+            "score": 0.812506,
+            "score_components": {
+              "approx_structural_overlap": 0.428571,
+              "building_block_progress": 1.0,
+              "database_support": 0.97,
+              "ec_consistency": 1.0,
+              "structural_similarity": 0.341463
+            },
+            "step_number": 1,
+            "stored_direction": "reversible",
+            "stored_equation": "C04043 + C03758 <=> C02916 + C00001",
+            "subsystem": "KEGG",
+            "target": {
+              "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "charge": null,
+              "formula": "C16H17NO4",
+              "generic": false,
+              "id": "C02916",
+              "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "name": "(S)-Norlaudanosoline",
+              "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "toxicity": 0.251169
+            },
+            "template": null,
+            "warnings": []
+          }
+        ],
+        "target_carbon_efficiency": 1.0
+      }
+    ],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "agent_attempt_count": 2,
+      "agent_tool_call_count": 11,
+      "agent_tool_names": [
+        "MoleculeInputNormalizer",
+        "Mol2CAS",
+        "Mol2CAS",
+        "Mol2CAS",
+        "ControlChemCheck",
+        "ControlChemCheck",
+        "ControlChemCheck",
+        "ExplosiveCheck",
+        "ExplosiveCheck",
+        "ExplosiveCheck",
+        "EnzymeRetrosynthesisSearch"
+      ],
+      "backward_queries": 144,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 527,
+      "complete_routes_found": 1,
+      "consensus_candidates": 3,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 20578,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 442,
+        "forward_queries": 591,
+        "hits": 42206,
+        "misses": 2836,
+        "normalizations": 3606
+      },
+      "database_candidates": 10,
+      "database_only_routes": 1,
+      "dead_ends": 29,
+      "duplicate_states_pruned": 0,
+      "elapsed_seconds": 567.138966,
+      "endpoint_route_rejection_reasons": {
+        "disconnected_steps": 9,
+        "multiple_producers_for_molecule": 1,
+        "terminal_building_block_mismatch": 11
+      },
+      "endpoint_routes_rejected": 19,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 451,
+        "generic_structure": 37,
+        "route_cycle": 9,
+        "self_cycle": 30
+      },
+      "forward_alternative_count": 1994,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 271,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 284,
+      "forward_direct_solutions": 1,
+      "forward_queries": 170,
+      "fusion_candidates": 545,
+      "hybrid_backward_solutions": 0,
+      "mcts_backpropagations": 1571,
+      "mcts_best_reward": 1.86252022,
+      "mcts_expansion_nodes": 39,
+      "mcts_iterations": 1571,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 9,
+      "mcts_rollouts": 1571,
+      "mcts_root_mean_value": 1.72223325,
+      "mcts_root_visits": 1571,
+      "mcts_selection_steps": 1672,
+      "mcts_tree_nodes": 40,
+      "model_assisted_routes": 0,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 457,
+        "hits": 5482,
+        "misses": 457,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 115,
+      "model_calls": 29,
+      "model_candidates": 549,
+      "model_failures": 0,
+      "model_requests": 144,
+      "requested_top_k": 10,
+      "returned_route_count": 1,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 1,
+      "states_expanded": 35,
+      "states_generated": 39,
+      "termination_reason": "MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS",
+      "top_k_shortfall": 9,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "valid_normalization_call_count": 1,
+      "valid_search_call_count": 1,
+      "warnings": []
+    }
+  },
+  "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"]\n已知底物集合 D：[\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+  "search_result": {
+    "and_or_tree": {
+      "and_semantics": "solve every non-currency precursor of the reaction",
+      "molecule_node_count": 3,
+      "molecule_nodes": [
+        {
+          "molecule": {
+            "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "charge": null,
+            "formula": "C16H17NO4",
+            "generic": false,
+            "id": "C02916",
+            "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "name": "(S)-Norlaudanosoline",
+            "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "toxicity": 0.251169
+          },
+          "node_id": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+          "node_type": "OR",
+          "role": "target",
+          "solution_routes": [
+            1
+          ]
+        },
+        {
+          "molecule": {
+            "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+            "charge": null,
+            "coefficient": "1",
+            "formula": "C8H8O3",
+            "generic": false,
+            "id": "C04043",
+            "key": "smi:O=CCc1ccc(O)c(O)c1",
+            "name": "3,4-Dihydroxyphenylacetaldehyde",
+            "role": "main",
+            "smiles": "O=CCc1ccc(O)c(O)c1",
+            "toxicity": 0.441115
+          },
+          "node_id": "smi:O=CCc1ccc(O)c(O)c1",
+          "node_type": "OR",
+          "role": "building_block",
+          "solution_routes": [
+            1
+          ]
+        },
+        {
+          "molecule": {
+            "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+            "charge": null,
+            "coefficient": "1",
+            "formula": "C8H11NO2",
+            "generic": false,
+            "id": "C03758",
+            "key": "smi:NCCc1ccc(O)c(O)c1",
+            "name": "Dopamine",
+            "role": "main",
+            "smiles": "NCCc1ccc(O)c(O)c1",
+            "toxicity": 0.914453
+          },
+          "node_id": "smi:NCCc1ccc(O)c(O)c1",
+          "node_type": "OR",
+          "role": "building_block",
+          "solution_routes": [
+            1
+          ]
+        }
+      ],
+      "or_semantics": "choose one producing reaction for each molecule",
+      "reaction_node_count": 1,
+      "reaction_nodes": [
+        {
+          "database_reaction_ids": [
+            "R04084"
+          ],
+          "ec_numbers": [
+            "4.2.1.78"
+          ],
+          "node_id": "db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+          "node_type": "AND",
+          "precursor_keys": [
+            "smi:O=CCc1ccc(O)c(O)c1",
+            "smi:NCCc1ccc(O)c(O)c1"
+          ],
+          "provenance": "DATABASE",
+          "solution_routes": [
+            1
+          ],
+          "step_cost": 0.207632,
+          "step_score": 0.812506,
+          "target_key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O"
+        }
+      ],
+      "representation": "AND_OR_HYPERGRAPH",
+      "root_molecule_key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+      "scope": "TOP_K_COMPLETE_SOLUTION_SUBGRAPH"
+    },
+    "building_blocks": [
+      {
+        "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+        "charge": null,
+        "formula": "C8H11NO2",
+        "generic": false,
+        "id": "C03758",
+        "key": "smi:NCCc1ccc(O)c(O)c1",
+        "name": "Dopamine",
+        "smiles": "NCCc1ccc(O)c(O)c1",
+        "toxicity": 0.914453
+      },
+      {
+        "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+        "charge": null,
+        "formula": "C8H8O3",
+        "generic": false,
+        "id": "C04043",
+        "key": "smi:O=CCc1ccc(O)c(O)c1",
+        "name": "3,4-Dihydroxyphenylacetaldehyde",
+        "smiles": "O=CCc1ccc(O)c(O)c1",
+        "toxicity": 0.441115
+      }
+    ],
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "config": {
+      "allow_unknown_direction": true,
+      "auxiliary_precursor_penalty": 0.04,
+      "candidate_beam_width": 20,
+      "consensus_bonus": 0.1,
+      "currency_metabolite_ids": [
+        "C00001",
+        "C00002",
+        "C00003",
+        "C00004",
+        "C00005",
+        "C00006",
+        "C00007",
+        "C00008",
+        "C00009",
+        "C00010",
+        "C00011",
+        "C00013",
+        "C00014",
+        "C00015",
+        "C00016",
+        "C00019",
+        "C00020",
+        "C00021",
+        "C00027",
+        "C00044",
+        "C00046",
+        "C00055",
+        "C00063",
+        "C00075",
+        "C00080",
+        "C00081",
+        "C00112",
+        "C00126",
+        "C00138",
+        "C00139",
+        "C00282",
+        "C00288",
+        "C00342",
+        "C00343",
+        "C01352"
+      ],
+      "database_preference_bonus": 0.03,
+      "database_top_k": 20,
+      "diversity_penalty": 0.15,
+      "enable_forward_anchor_cache": true,
+      "forward_anchor_cache_size": 16,
+      "forward_anchor_depth": 6,
+      "forward_anchor_max_nodes": 5000,
+      "fusion_overlap_threshold": 0.5,
+      "generic_structure_penalty": 0.4,
+      "global_beam_width": 50,
+      "heuristic_weight": 0.35,
+      "include_search_trace": false,
+      "max_consecutive_model_only_steps": 2,
+      "max_depth": 4,
+      "max_expansions": 5000,
+      "max_forward_routes_per_node": 10,
+      "max_model_calls": 100,
+      "max_model_only_steps": 5,
+      "max_precursors_per_step": 8,
+      "max_states_per_signature": 3,
+      "max_toxicity": 1.0,
+      "mcts_completion_bonus": 1.0,
+      "mcts_epsilon": 0.1,
+      "mcts_exploration_constant": 1.4,
+      "mcts_progressive_widening": true,
+      "mcts_progressive_widening_alpha": 0.5,
+      "mcts_progressive_widening_constant": 2.0,
+      "mcts_random_seed": 100,
+      "mcts_rollout_depth": 3,
+      "min_approx_structural_overlap": 0.0,
+      "min_atom_conservation": 0.0,
+      "min_candidate_score": 0.02,
+      "min_feasibility": 0.0,
+      "min_model_score": 0.0,
+      "model_only_penalty": 0.25,
+      "model_top_k": 10,
+      "reject_generic_structures": true,
+      "require_all_building_blocks": true,
+      "require_ec": false,
+      "respect_reaction_direction": true,
+      "route_byproduct_weight": 0.1,
+      "route_carbon_efficiency_weight": 0.25,
+      "route_cofactor_weight": 0.0,
+      "route_length_penalty": 0.03,
+      "route_reaction_quality_weight": 0.65,
+      "score_epsilon": 1e-08,
+      "scoring_weights": {
+        "approx_structural_overlap": 0.1,
+        "atom_conservation": 0.1,
+        "building_block_progress": 0.05,
+        "database_support": 0.25,
+        "ec_consistency": 0.1,
+        "feasibility": 0.15,
+        "inverse_toxicity": 0.0,
+        "model_score": 0.15,
+        "structural_similarity": 0.1,
+        "yield_score": 0.0
+      },
+      "search_algorithm": "and_or_mcts",
+      "solution_pool_multiplier": 3,
+      "top_k_routes": 10,
+      "unknown_direction_penalty": 0.2,
+      "use_database": true,
+      "use_model": true
+    },
+    "endpoint_constraints": {
+      "require_all_building_blocks": true,
+      "required_building_block_keys": [
+        "smi:NCCc1ccc(O)c(O)c1",
+        "smi:O=CCc1ccc(O)c(O)c1"
+      ],
+      "target_key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O"
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "input": {
+      "building_block_count": 2,
+      "library_sources": [],
+      "requested_endpoint_mode": "exact_set",
+      "target_count": 1
+    },
+    "mode": "database+model",
+    "ok": true,
+    "planner": "EnzymeRetrosynthesisSearch",
+    "route_count": 1,
+    "routes": [
+      {
+        "all_noncurrency_leaves_solved": true,
+        "atom_mapping_used": false,
+        "backward_expansion_depth": 0,
+        "carbon_evaluation_method": "MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+        "complete": true,
+        "currency_cofactor_count": 0,
+        "diversity_adjusted_score": 0.86252,
+        "enzyme_annotated_retrosynthesis": "(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)",
+        "forward_path": "3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)",
+        "main_branch_carbon_retention": 1.0,
+        "major_organic_byproduct_penalty": 0.0,
+        "major_organic_byproducts": [],
+        "provenance_counts": {
+          "BOTH": 0,
+          "DATABASE": 1,
+          "MODEL": 0
+        },
+        "rank": 1,
+        "retrosynthesis": "(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)",
+        "retrosynthesis_reactions": [
+          {
+            "candidate_id": "db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [
+                "R04084"
+              ],
+              "ec_display": "EC 4.2.1.78",
+              "ec_numbers": [
+                "4.2.1.78"
+              ],
+              "provenance": "DATABASE",
+              "reaction_name": "3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)",
+              "template": null
+            },
+            "equation": "(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+                "charge": null,
+                "formula": "C8H8O3",
+                "generic": false,
+                "id": "C04043",
+                "key": "smi:O=CCc1ccc(O)c(O)c1",
+                "name": "3,4-Dihydroxyphenylacetaldehyde",
+                "smiles": "O=CCc1ccc(O)c(O)c1",
+                "toxicity": 0.441115
+              },
+              {
+                "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+                "charge": null,
+                "formula": "C8H11NO2",
+                "generic": false,
+                "id": "C03758",
+                "key": "smi:NCCc1ccc(O)c(O)c1",
+                "name": "Dopamine",
+                "smiles": "NCCc1ccc(O)c(O)c1",
+                "toxicity": 0.914453
+              }
+            ],
+            "retrosynthesis_step": 1,
+            "target": {
+              "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "charge": null,
+              "formula": "C16H17NO4",
+              "generic": false,
+              "id": "C02916",
+              "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "name": "(S)-Norlaudanosoline",
+              "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "toxicity": 0.251169
+            }
+          }
+        ],
+        "route_cost": 0.237632,
+        "route_score": 0.86252,
+        "route_score_components": {
+          "inverse_cofactor_burden": 1.0,
+          "inverse_major_byproduct_penalty": 1.0,
+          "reaction_quality": 0.7884926412848225,
+          "target_carbon_efficiency": 1.0
+        },
+        "route_validation": {
+          "acyclic": true,
+          "connected": true,
+          "cycle_paths": [],
+          "disconnected_candidate_ids": [],
+          "duplicate_target_keys": [],
+          "endpoint_match": true,
+          "extra_terminal_keys": [],
+          "missing_building_block_keys": [],
+          "reachable_step_count": 1,
+          "reasons": [],
+          "require_all_building_blocks": true,
+          "required_building_block_keys": [
+            "smi:NCCc1ccc(O)c(O)c1",
+            "smi:O=CCc1ccc(O)c(O)c1"
+          ],
+          "step_count": 1,
+          "target_key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+          "terminal_building_block_keys": [
+            "smi:NCCc1ccc(O)c(O)c1",
+            "smi:O=CCc1ccc(O)c(O)c1"
+          ],
+          "valid": true
+        },
+        "step_count": 1,
+        "steps": [
+          {
+            "candidate_id": "db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 8.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 16.0
+            },
+            "cost": 0.207632,
+            "database_reaction_ids": [
+              "R04084"
+            ],
+            "direction_semantics": {
+              "precursor_side": "left",
+              "retrosynthesis_direction": "right_to_left",
+              "stored_forward_direction": "left_to_right",
+              "stored_reaction_direction": "reversible",
+              "target_side": "right"
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "4.2.1.78"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "gene_rule": "EC 4.2.1.78",
+              "id_origin": "source",
+              "lower_bound": -1000.0,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "database_support": "LOCAL_SQLITE_REACTION_ANNOTATION",
+                "structural_similarity": "RDKIT_MORGAN_TANIMOTO",
+                "toxicity": "LOCAL_DATABASE_UNCALIBRATED_SCALAR"
+              },
+              "participant_annotations": [],
+              "precursor_side": "left",
+              "product_side": "right",
+              "retrosynthesis_direction": "right_to_left",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "database_support": 0.25,
+                  "ec_consistency": 0.1,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.03
+              },
+              "stored_forward_direction": "left_to_right",
+              "upper_bound": 1000.0
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "database_support": "LOCAL_SQLITE_REACTION_ANNOTATION",
+              "structural_similarity": "RDKIT_MORGAN_TANIMOTO",
+              "toxicity": "LOCAL_DATABASE_UNCALIBRATED_SCALAR"
+            },
+            "model_rank": null,
+            "other_products": [
+              {
+                "canonical_smiles": "O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "H2O",
+                "generic": false,
+                "id": "C00001",
+                "key": "smi:O",
+                "name": "H2O",
+                "smiles": "O",
+                "toxicity": 0.055944
+              }
+            ],
+            "precursors": [
+              {
+                "canonical_smiles": "O=CCc1ccc(O)c(O)c1",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "C8H8O3",
+                "generic": false,
+                "id": "C04043",
+                "key": "smi:O=CCc1ccc(O)c(O)c1",
+                "name": "3,4-Dihydroxyphenylacetaldehyde",
+                "role": "main",
+                "smiles": "O=CCc1ccc(O)c(O)c1",
+                "toxicity": 0.441115
+              },
+              {
+                "canonical_smiles": "NCCc1ccc(O)c(O)c1",
+                "charge": null,
+                "coefficient": "1",
+                "formula": "C8H11NO2",
+                "generic": false,
+                "id": "C03758",
+                "key": "smi:NCCc1ccc(O)c(O)c1",
+                "name": "Dopamine",
+                "role": "main",
+                "smiles": "NCCc1ccc(O)c(O)c1",
+                "toxicity": 0.914453
+              }
+            ],
+            "provenance": "DATABASE",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.428571,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 1.0,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": 0.97,
+              "ec_consistency": 1.0,
+              "feasibility": null,
+              "model_score": null,
+              "structural_similarity": 0.341463,
+              "toxicity": 0.914453,
+              "yield": null
+            },
+            "reaction_name": "3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)",
+            "score": 0.812506,
+            "score_components": {
+              "approx_structural_overlap": 0.428571,
+              "building_block_progress": 1.0,
+              "database_support": 0.97,
+              "ec_consistency": 1.0,
+              "structural_similarity": 0.341463
+            },
+            "step_number": 1,
+            "stored_direction": "reversible",
+            "stored_equation": "C04043 + C03758 <=> C02916 + C00001",
+            "subsystem": "KEGG",
+            "target": {
+              "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "charge": null,
+              "formula": "C16H17NO4",
+              "generic": false,
+              "id": "C02916",
+              "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "name": "(S)-Norlaudanosoline",
+              "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+              "toxicity": 0.251169
+            },
+            "template": null,
+            "warnings": []
+          }
+        ],
+        "target_carbon_efficiency": 1.0
+      }
+    ],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "backward_queries": 144,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 527,
+      "complete_routes_found": 1,
+      "consensus_candidates": 3,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 20578,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 442,
+        "forward_queries": 591,
+        "hits": 42206,
+        "misses": 2836,
+        "normalizations": 3606
+      },
+      "database_candidates": 10,
+      "database_only_routes": 1,
+      "dead_ends": 29,
+      "duplicate_states_pruned": 0,
+      "elapsed_seconds": 567.138966,
+      "endpoint_route_rejection_reasons": {
+        "disconnected_steps": 9,
+        "multiple_producers_for_molecule": 1,
+        "terminal_building_block_mismatch": 11
+      },
+      "endpoint_routes_rejected": 19,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 451,
+        "generic_structure": 37,
+        "route_cycle": 9,
+        "self_cycle": 30
+      },
+      "forward_alternative_count": 1994,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 271,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 284,
+      "forward_direct_solutions": 1,
+      "forward_queries": 170,
+      "fusion_candidates": 545,
+      "hybrid_backward_solutions": 0,
+      "mcts_backpropagations": 1571,
+      "mcts_best_reward": 1.86252022,
+      "mcts_expansion_nodes": 39,
+      "mcts_iterations": 1571,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 9,
+      "mcts_rollouts": 1571,
+      "mcts_root_mean_value": 1.72223325,
+      "mcts_root_visits": 1571,
+      "mcts_selection_steps": 1672,
+      "mcts_tree_nodes": 40,
+      "model_assisted_routes": 0,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 457,
+        "hits": 5482,
+        "misses": 457,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 115,
+      "model_calls": 29,
+      "model_candidates": 549,
+      "model_failures": 0,
+      "model_requests": 144,
+      "requested_top_k": 10,
+      "returned_route_count": 1,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 1,
+      "states_expanded": 35,
+      "states_generated": 39,
+      "termination_reason": "MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS",
+      "top_k_shortfall": 9,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "warnings": []
+    },
+    "target": {
+      "canonical_smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+      "charge": null,
+      "formula": "C16H17NO4",
+      "generic": false,
+      "id": "C02916",
+      "key": "smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+      "name": "(S)-Norlaudanosoline",
+      "smiles": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O",
+      "toxicity": 0.251169
+    }
+  },
+  "tool_calls": [
+    {
+      "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"matched_by\": \"smiles\", \"database_id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"NCCc1ccc(O)c(O)c1\", \"matched_by\": \"smiles\", \"database_id\": \"C03758\", \"name\": \"Dopamine\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"O=CCc1ccc(O)c(O)c1\", \"matched_by\": \"smiles\", \"database_id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}}",
+      "tool": "MoleculeInputNormalizer",
+      "tool_input": "{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"]}"
+    },
+    {
+      "observation": "57073-15-1",
+      "tool": "Mol2CAS",
+      "tool_input": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O"
+    },
+    {
+      "observation": "51-61-6",
+      "tool": "Mol2CAS",
+      "tool_input": "NCCc1ccc(O)c(O)c1"
+    },
+    {
+      "observation": "5707-55-1",
+      "tool": "Mol2CAS",
+      "tool_input": "O=CCc1ccc(O)c(O)c1"
+    },
+    {
+      "observation": "Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O has a low similarity (0.09375) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "ControlChemCheck",
+      "tool_input": "57073-15-1"
+    },
+    {
+      "observation": "NCCc1ccc(O)c(O)c1 has a low similarity (0.1143) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "ControlChemCheck",
+      "tool_input": "51-61-6"
+    },
+    {
+      "observation": "O=CCc1ccc(O)c(O)c1 has a low similarity (0.1471) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "ControlChemCheck",
+      "tool_input": "5707-55-1"
+    },
+    {
+      "observation": "Explosive Check Error. The molecule may not be assigned a GHS rating. ",
+      "tool": "ExplosiveCheck",
+      "tool_input": "57073-15-1"
+    },
+    {
+      "observation": "Molecule is not known to be explosive",
+      "tool": "ExplosiveCheck",
+      "tool_input": "51-61-6"
+    },
+    {
+      "observation": "Molecule is not known to be explosive",
+      "tool": "ExplosiveCheck",
+      "tool_input": "5707-55-1"
+    },
+    {
+      "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false}, {\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"required_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"require_all_building_blocks\": true}, \"route_count\": 1, \"routes\": [{\"rank\": 1, \"complete\": true, \"all_noncurrency_leaves_solved\": true, \"route_validation\": {\"valid\": true, \"connected\": true, \"acyclic\": true, \"endpoint_match\": true, \"require_all_building_blocks\": true, \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"required_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"terminal_building_block_keys\": [\"smi:NCCc1ccc(O)c(O)c1\", \"smi:O=CCc1ccc(O)c(O)c1\"], \"missing_building_block_keys\": [], \"extra_terminal_keys\": [], \"reachable_step_count\": 1, \"step_count\": 1, \"duplicate_target_keys\": [], \"disconnected_candidate_ids\": [], \"cycle_paths\": [], \"reasons\": []}, \"route_score\": 0.86252, \"diversity_adjusted_score\": 0.86252, \"route_cost\": 0.237632, \"route_score_components\": {\"reaction_quality\": 0.7884926412848225, \"target_carbon_efficiency\": 1.0, \"inverse_major_byproduct_penalty\": 1.0, \"inverse_cofactor_burden\": 1.0}, \"target_carbon_efficiency\": 1.0, \"main_branch_carbon_retention\": 1.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"currency_cofactor_count\": 0, \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\", \"atom_mapping_used\": false, \"step_count\": 1, \"backward_expansion_depth\": 0, \"provenance_counts\": {\"DATABASE\": 1, \"MODEL\": 0, \"BOTH\": 0}, \"retrosynthesis\": \"(S)-Norlaudanosoline (C02916) <- 3,4-Dihydroxyphenylacetaldehyde (C04043)\", \"enzyme_annotated_retrosynthesis\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043)\", \"retrosynthesis_reactions\": [{\"retrosynthesis_step\": 1, \"equation\": \"(S)-Norlaudanosoline (C02916) ←[EC 4.2.1.78; 3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine); reaction R04084; DATABASE] 3,4-Dihydroxyphenylacetaldehyde (C04043) + Dopamine (C03758)\", \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false}, {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"4.2.1.78\"], \"ec_display\": \"EC 4.2.1.78\", \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\", \"database_reaction_ids\": [\"R04084\"], \"provenance\": \"DATABASE\", \"template\": null}, \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"}], \"forward_path\": \"3,4-Dihydroxyphenylacetaldehyde (C04043) -> (S)-Norlaudanosoline (C02916)\", \"steps\": [{\"step_number\": 1, \"candidate_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"provenance\": \"DATABASE\", \"database_reaction_ids\": [\"R04084\"], \"reaction_name\": \"3,4-Dihydroxyphenylacetaldehyde hydro-lyase (adding dopamine)\", \"stored_equation\": \"C04043 + C03758 <=> C02916 + C00001\", \"stored_direction\": \"reversible\", \"direction_uncertain\": false, \"target\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"precursors\": [{\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [{\"key\": \"smi:O\", \"id\": \"C00001\", \"name\": \"H2O\", \"smiles\": \"O\", \"canonical_smiles\": \"O\", \"formula\": \"H2O\", \"charge\": null, \"toxicity\": 0.055944, \"generic\": false, \"coefficient\": \"1\"}], \"ec_numbers\": [\"4.2.1.78\"], \"subsystem\": \"KEGG\", \"template\": null, \"model_rank\": null, \"score\": 0.812506, \"cost\": 0.207632, \"score_components\": {\"database_support\": 0.97, \"ec_consistency\": 1.0, \"approx_structural_overlap\": 0.428571, \"building_block_progress\": 1.0, \"structural_similarity\": 0.341463}, \"raw_metrics\": {\"database_support\": 0.97, \"model_score\": null, \"structural_similarity\": 0.341463, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.428571, \"feasibility\": null, \"yield\": null, \"toxicity\": 0.914453, \"ec_consistency\": 1.0, \"building_block_similarity\": 1.0, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": \"reversible\", \"stored_forward_direction\": \"left_to_right\", \"retrosynthesis_direction\": \"right_to_left\", \"precursor_side\": \"left\", \"target_side\": \"right\"}, \"metric_provenance\": {\"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\", \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"}, \"metadata\": {\"precursor_side\": \"left\", \"product_side\": \"right\", \"stored_forward_direction\": \"left_to_right\", \"retrosynthesis_direction\": \"right_to_left\", \"atom_mapping_source\": \"NONE\", \"lower_bound\": -1000.0, \"upper_bound\": 1000.0, \"gene_rule\": \"EC 4.2.1.78\", \"id_origin\": \"source\", \"participant_annotations\": [], \"metric_provenance\": {\"database_support\": \"LOCAL_SQLITE_REACTION_ANNOTATION\", \"structural_similarity\": \"RDKIT_MORGAN_TANIMOTO\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"toxicity\": \"LOCAL_DATABASE_UNCALIBRATED_SCALAR\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"database_support\": 0.25, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.03}}, \"carbon_branch\": {\"main_precursor_carbon\": 8.0, \"target_product_carbon\": 16.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}]}], \"stats\": {\"states_expanded\": 35, \"states_generated\": 39, \"duplicate_states_pruned\": 0, \"beam_states_pruned\": 0, \"dead_ends\": 29, \"database_candidates\": 10, \"forward_queries\": 170, \"backward_queries\": 144, \"model_candidates\": 549, \"model_requests\": 144, \"model_calls\": 29, \"model_cache_hits\": 115, \"model_failures\": 0, \"fusion_candidates\": 545, \"consensus_candidates\": 3, \"candidates_filtered\": 527, \"filter_reasons\": {\"self_cycle\": 30, \"generic_structure\": 37, \"consecutive_model_only_limit\": 451, \"route_cycle\": 9}, \"forward_anchor_count\": 271, \"forward_anchor_updates\": 284, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 1994, \"forward_direct_solutions\": 1, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 1571, \"mcts_selection_steps\": 1672, \"mcts_expansion_nodes\": 39, \"mcts_rollouts\": 1571, \"mcts_rollout_steps\": 9, \"mcts_backpropagations\": 1571, \"mcts_tree_nodes\": 40, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 1571, \"mcts_root_mean_value\": 1.72223325, \"mcts_best_reward\": 1.86252022, \"endpoint_routes_rejected\": 19, \"endpoint_route_rejection_reasons\": {\"disconnected_steps\": 9, \"multiple_producers_for_molecule\": 1, \"terminal_building_block_mismatch\": 11}, \"complete_routes_found\": 1, \"solution_pool_size_before_rerank\": 1, \"returned_route_count\": 1, \"top_k_shortfall\": 9, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 1, \"model_assisted_routes\": 0, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_TREE_EXHAUSTED_WITH_SOLUTIONS\", \"elapsed_seconds\": 567.138966, \"database_cache\": {\"hits\": 42206, \"misses\": 2836, \"normalizations\": 3606, \"backward_queries\": 442, \"forward_queries\": 591, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 20578, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 5482, \"misses\": 457, \"entries\": 457, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [{\"node_id\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"node_type\": \"OR\", \"role\": \"target\", \"molecule\": {\"key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"id\": \"C02916\", \"name\": \"(S)-Norlaudanosoline\", \"smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"canonical_smiles\": \"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"formula\": \"C16H17NO4\", \"charge\": null, \"toxicity\": 0.251169, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:O=CCc1ccc(O)c(O)c1\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:O=CCc1ccc(O)c(O)c1\", \"id\": \"C04043\", \"name\": \"3,4-Dihydroxyphenylacetaldehyde\", \"smiles\": \"O=CCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"O=CCc1ccc(O)c(O)c1\", \"formula\": \"C8H8O3\", \"charge\": null, \"toxicity\": 0.441115, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}, {\"node_id\": \"smi:NCCc1ccc(O)c(O)c1\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:NCCc1ccc(O)c(O)c1\", \"id\": \"C03758\", \"name\": \"Dopamine\", \"smiles\": \"NCCc1ccc(O)c(O)c1\", \"canonical_smiles\": \"NCCc1ccc(O)c(O)c1\", \"formula\": \"C8H11NO2\", \"charge\": null, \"toxicity\": 0.914453, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}], \"reaction_nodes\": [{\"node_id\": \"db:R04084:right>left:smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"node_type\": \"AND\", \"target_key\": \"smi:Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\", \"precursor_keys\": [\"smi:O=CCc1ccc(O)c(O)c1\", \"smi:NCCc1ccc(O)c(O)c1\"], \"provenance\": \"DATABASE\", \"database_reaction_ids\": [\"R04084\"], \"ec_numbers\": [\"4.2.1.78\"], \"step_score\": 0.812506, \"step_cost\": 0.207632, \"solution_routes\": [1]}], \"molecule_node_count\": 3, \"reaction_node_count\": 1, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+      "tool": "EnzymeRetrosynthesisSearch",
+      "tool_input": "{\"targets\": [\"Oc1ccc(C[C@@H]2NCCc3cc(O)c(O)cc32)cc1O\"], \"building_blocks\": [\"NCCc1ccc(O)c(O)c1\", \"O=CCc1ccc(O)c(O)c1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+    }
+  ]
+}

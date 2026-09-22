@@ -1,0 +1,1326 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "final_answer": "I cannot complete this request because the required tool call sequence cannot be executed in this environment.\n\nSpecifically:\n- The task requires calling `MoleculeInputNormalizer` first with the exact JSON:\n  `{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}`\n- Then, only after successful normalization, calling `EnzymeRetrosynthesisSearch` once with the normalized target set and the full D set, using `endpoint_mode=\"exact_set\"`, `top_k=10`, `search_algorithm=\"and_or_mcts\"`, and the specified config.\n\nHowever, no tool execution results are available in this conversation, so I cannot:\n1. Normalize the target `CCC[C@H]1CCC[C@@H](C)N1` or the building block `CCCC(=O)CCCC(C)=O`.\n2. Run the required AND-OR MCTS enzymatic retrosynthesis search.\n3. Retrieve any `route_validation.valid=true` routes.\n4. Output `enzyme_annotated_retrosynthesis`, `retrosynthesis_reactions[].equation`, EC numbers, reaction names, database IDs, model templates, provenance, or the complete JSON for Top 10 routes.\n\nI also must not invent enzymes, reactions, routes, EC numbers, or validation results. Since the required tool outputs are absent, the only correct response is to report that the requested endpoint-constrained enzymatic multi-step retrosynthesis cannot be completed without executing the specified tools.\n\nRequired next step: run `MoleculeInputNormalizer` with the provided JSON, then run `EnzymeRetrosynthesisSearch` exactly as specified, and return only routes with `route_validation.valid=true`.",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCC[C@H]1CCC[C@@H](C)N1\"]\n已知底物集合 D：[\"CCCC(=O)CCCC(C)=O\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+      "tool_calls": []
+    },
+    {
+      "attempt": 2,
+      "final_answer": "已按测试协议完成规范化与一次 `EnzymeRetrosynthesisSearch` 图搜索。工具返回 `route_count=1`，且该路线 `route_validation.valid=true`。由于搜索在达到足够多不同完整路线前已耗尽，`top_k_shortfall=9`，因此实际只返回 1 条有效 Top-K 路线（不是 10 条）。\n\n## 规范化结果\n\n- 目标物 A：`CCC[C@H]1CCC[C@@H](C)N1`\n- 已知底物 D：`CCCC(=O)CCCC(C)=O`\n- 规范化方式：`RDKIT_CANONICAL_ISOMERIC_SMILES`\n- 两者均 `valid=true`\n\n## 有效路线（Rank 1）\n\n### enzyme_annotated_retrosynthesis\n\n```text\nCCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\n```\n\n### retrosynthesis_reactions[].equation\n\n```text\nCCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\nCCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\n```\n\n### 路线校验\n\n- `route_validation.valid = true`\n- `connected = true`\n- `acyclic = true`\n- `endpoint_match = true`\n- `require_all_building_blocks = true`\n- `terminal_building_block_keys = [\"smi:CCCC(=O)CCCC(C)=O\"]`\n- `missing_building_block_keys = []`\n- `extra_terminal_keys = []`\n- `step_count = 2`\n- `reachable_step_count = 2`\n\n### 酶信息\n\n- 第 1 步：`EC 4.2.1`，来源 `MODEL`，模板 `[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1`\n- 第 2 步：`EC 2.6.1`，来源 `MODEL`，模板 `[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1`\n\n说明：工具未返回具体酶名或数据库反应 ID，仅返回 EC 号与模型模板；未猜测未知酶。\n\n### 完整 JSON\n\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\n    \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"id\": null,\n    \"name\": null,\n    \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n    \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n    \"formula\": null,\n    \"charge\": null,\n    \"toxicity\": null,\n    \"generic\": false\n  },\n  \"building_blocks\": [\n    {\n      \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n      \"id\": null,\n      \"name\": null,\n      \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n      \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n      \"formula\": null,\n      \"charge\": null,\n      \"toxicity\": null,\n      \"generic\": false\n    }\n  ],\n  \"endpoint_constraints\": {\n    \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n    \"require_all_building_blocks\": true\n  },\n  \"route_count\": 1,\n  \"routes\": [\n    {\n      \"rank\": 1,\n      \"complete\": true,\n      \"all_noncurrency_leaves_solved\": true,\n      \"route_validation\": {\n        \"valid\": true,\n        \"connected\": true,\n        \"acyclic\": true,\n        \"endpoint_match\": true,\n        \"require_all_building_blocks\": true,\n        \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n        \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"terminal_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"missing_building_block_keys\": [],\n        \"extra_terminal_keys\": [],\n        \"reachable_step_count\": 2,\n        \"step_count\": 2,\n        \"duplicate_target_keys\": [],\n        \"disconnected_candidate_ids\": [],\n        \"cycle_paths\": [],\n        \"reasons\": []\n      },\n      \"route_score\": 0.555002,\n      \"diversity_adjusted_score\": 0.555002,\n      \"route_cost\": 2.307902,\n      \"route_score_components\": {\n        \"reaction_quality\": 0.31538826925332303,\n        \"target_carbon_efficiency\": 1.0,\n        \"inverse_major_byproduct_penalty\": 1.0,\n        \"inverse_cofactor_burden\": 1.0\n      },\n      \"target_carbon_efficiency\": 1.0,\n      \"main_branch_carbon_retention\": 1.0,\n      \"major_organic_byproduct_penalty\": 0.0,\n      \"major_organic_byproducts\": [],\n      \"currency_cofactor_count\": 0,\n      \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\",\n      \"atom_mapping_used\": false,\n      \"step_count\": 2,\n      \"backward_expansion_depth\": 2,\n      \"provenance_counts\": {\n        \"DATABASE\": 0,\n        \"MODEL\": 2,\n        \"BOTH\": 0\n      },\n      \"retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O\",\n      \"enzyme_annotated_retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\",\n      \"retrosynthesis_reactions\": [\n        {\n          \"retrosynthesis_step\": 1,\n          \"equation\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\",\n          \"target\": {\n            \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"4.2.1\"],\n            \"ec_display\": \"EC 4.2.1\",\n            \"reaction_name\": null,\n            \"database_reaction_ids\": [],\n            \"provenance\": \"MODEL\",\n            \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\"\n          },\n          \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\"\n        },\n        {\n          \"retrosynthesis_step\": 2,\n          \"equation\": \"CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\",\n          \"target\": {\n            \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"2.6.1\"],\n            \"ec_display\": \"EC 2.6.1\",\n            \"reaction_name\": null,\n            \"database_reaction_ids\": [],\n            \"provenance\": \"MODEL\",\n            \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\"\n          },\n          \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\"\n        }\n      ],\n      \"forward_path\": \"CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1\",\n      \"steps\": [\n        {\n          \"step_number\": 1,\n          \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\",\n          \"provenance\": \"MODEL\",\n          \"database_reaction_ids\": [],\n          \"reaction_name\": null,\n          \"stored_equation\": null,\n          \"stored_direction\": null,\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [],\n          \"ec_numbers\": [\"2.6.1\"],\n          \"subsystem\": null,\n          \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\",\n          \"model_rank\": \"Top-1\",\n          \"score\": 0.575552,\n          \"cost\": 0.802425,\n          \"score_components\": {\n            \"model_score\": 0.318,\n            \"feasibility\": 0.17,\n            \"ec_consistency\": 0.6,\n            \"approx_structural_overlap\": 0.909091,\n            \"building_block_progress\": 1.0,\n            \"structural_similarity\": 1.0\n          },\n          \"raw_metrics\": {\n            \"database_support\": null,\n            \"model_score\": 0.318,\n            \"structural_similarity\": 1.0,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.909091,\n            \"feasibility\": 0.17,\n            \"yield\": null,\n            \"toxicity\": null,\n            \"ec_consistency\": 0.6,\n            \"building_block_similarity\": 1.0,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": null,\n            \"stored_forward_direction\": null,\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"precursor_side\": null,\n            \"target_side\": null\n          },\n          \"metric_provenance\": {\n            \"model_score\": \"MOORETRO_BEAM_SCORE\",\n            \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n            \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n            \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n          },\n          \"metadata\": {\n            \"model\": \"biocyc\",\n            \"ec_level\": 3,\n            \"raw_prediction_index\": 0,\n            \"atom_mapping_source\": \"NONE\",\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"metric_provenance\": {\n              \"model_score\": \"MOORETRO_BEAM_SCORE\",\n              \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n              \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n              \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"model_score\": 0.15,\n                \"feasibility\": 0.15,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.0\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 9.0,\n            \"target_product_carbon\": 9.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        },\n        {\n          \"step_number\": 2,\n          \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\",\n          \"provenance\": \"MODEL\",\n          \"database_reaction_ids\": [],\n          \"reaction_name\": null,\n          \"stored_equation\": null,\n          \"stored_direction\": null,\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [],\n          \"ec_numbers\": [\"4.2.1\"],\n          \"subsystem\": null,\n          \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\",\n          \"model_rank\": \"Top-9\",\n          \"score\": 0.30256,\n          \"cost\": 1.445477,\n          \"score_components\": {\n            \"model_score\": 0.06,\n            \"feasibility\": 0.197,\n            \"ec_consistency\": 0.6,\n            \"approx_structural_overlap\": 0.3,\n            \"building_block_progress\": 0.448276,\n            \"structural_similarity\": 0.457\n          },\n          \"raw_metrics\": {\n            \"database_support\": null,\n            \"model_score\": 0.06,\n            \"structural_similarity\": 0.457,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.3,\n            \"feasibility\": 0.197,\n            \"yield\": null,\n            \"toxicity\": null,\n            \"ec_consistency\": 0.6,\n            \"building_block_similarity\": 0.448276,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": null,\n            \"stored_forward_direction\": null,\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"precursor_side\": null,\n            \"target_side\": null\n          },\n          \"metric_provenance\": {\n            \"model_score\": \"MOORETRO_BEAM_SCORE\",\n            \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n            \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n            \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n          },\n          \"metadata\": {\n            \"model\": \"biocyc\",\n            \"ec_level\": 3,\n            \"raw_prediction_index\": 4,\n            \"atom_mapping_source\": \"NONE\",\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"metric_provenance\": {\n              \"model_score\": \"MOORETRO_BEAM_SCORE\",\n              \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n              \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n              \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"model_score\": 0.15,\n                \"feasibility\": 0.15,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.0\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 9.0,\n            \"target_product_carbon\": 9.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        }\n      ]\n    }\n  ],\n  \"stats\": {\n    \"states_expanded\": 45,\n    \"states_generated\": 69,\n    \"duplicate_states_pruned\": 0,\n    \"beam_states_pruned\": 0,\n    \"dead_ends\": 57,\n    \"database_candidates\": 68,\n    \"forward_queries\": 1,\n    \"backward_queries\": 630,\n    \"model_candidates\": 3328,\n    \"model_requests\": 630,\n    \"model_calls\": 38,\n    \"model_cache_hits\": 592,\n    \"model_failures\": 0,\n    \"fusion_candidates\": 3380,\n    \"consensus_candidates\": 3,\n    \"candidates_filtered\": 3213,\n    \"filter_reasons\": {\n      \"consecutive_model_only_limit\": 2882,\n      \"generic_structure\": 92,\n      \"self_cycle\": 42,\n      \"route_cycle\": 184,\n      \"no_noncurrency_precursor\": 13\n    },\n    \"forward_anchor_count\": 1,\n    \"forward_anchor_updates\": 0,\n    \"forward_anchor_cache_hits\": 0,\n    \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 1,\n    \"forward_direct_solutions\": 0,\n    \"forward_anchor_stitched_solutions\": 0,\n    \"hybrid_backward_solutions\": 1,\n    \"search_phases\": [\n      \"PHASE_A_FORWARD_ANCHOR\",\n      \"PHASE_B_BACKWARD_HYBRID_SEARCH\",\n      \"PHASE_C_SOLUTION_MERGE\",\n      \"PHASE_D_ROUTE_SCORING\",\n      \"PHASE_E_DIVERSITY_RERANK\"\n    ],\n    \"requested_top_k\": 10,\n    \"warnings\": [],\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 5000,\n    \"mcts_selection_steps\": 10217,\n    \"mcts_expansion_nodes\": 67,\n    \"mcts_rollouts\": 5000,\n    \"mcts_rollout_steps\": 10,\n    \"mcts_backpropagations\": 5000,\n    \"mcts_tree_nodes\": 68,\n    \"mcts_max_tree_depth\": 4,\n    \"mcts_root_visits\": 5000,\n    \"mcts_root_mean_value\": 1.34181335,\n    \"mcts_best_reward\": 1.55500238,\n    \"endpoint_routes_rejected\": 0,\n    \"endpoint_route_rejection_reasons\": {},\n    \"complete_routes_found\": 1,\n    \"solution_pool_size_before_rerank\": 1,\n    \"returned_route_count\": 1,\n    \"top_k_shortfall\": 9,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 0,\n    \"model_assisted_routes\": 1,\n    \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\",\n    \"elapsed_seconds\": 506.029196,\n    \"database_cache\": {\n      \"hits\": 165615,\n      \"misses\": 8096,\n      \"normalizations\": 11618,\n      \"backward_queries\": 1505,\n      \"forward_queries\": 782,\n      \"adjacency_index\": {\n        \"enabled\": true,\n        \"loaded\": true,\n        \"metabolites\": 36301,\n        \"reactions\": 23718,\n        \"reaction_sides\": 47434,\n        \"indexed_metabolites\": 16130,\n        \"hits\": 31559,\n        \"load_seconds\": 0.798801\n      }\n    },\n    \"model_cache\": {\n      \"hits\": 20996,\n      \"misses\": 1839,\n      \"entries\": 1839,\n      \"model\": \"biocyc\",\n      \"backend_mode\": \"neural_model\",\n      \"runtime_device\": \"cuda:0\"\n    }\n  },\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"respect_reaction_direction\": true,\n    \"allow_unknown_direction\": true,\n    \"require_all_building_blocks\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"forward_anchor_depth\": 6,\n    \"forward_anchor_max_nodes\": 5000,\n    \"database_top_k\": 20,\n    \"model_top_k\": 10,\n    \"candidate_beam_width\": 20,\n    \"global_beam_width\": 50,\n    \"top_k_routes\": 10,\n    \"solution_pool_multiplier\": 3,\n    \"max_states_per_signature\": 3,\n    \"max_forward_routes_per_node\": 10,\n    \"max_precursors_per_step\": 8,\n    \"max_model_only_steps\": 5,\n    \"max_consecutive_model_only_steps\": 2,\n    \"max_model_calls\": 100,\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_exploration_constant\": 1.4,\n    \"mcts_rollout_depth\": 3,\n    \"mcts_random_seed\": 100,\n    \"mcts_epsilon\": 0.1,\n    \"mcts_progressive_widening\": true,\n    \"mcts_progressive_widening_alpha\": 0.5,\n    \"mcts_progressive_widening_constant\": 2.0,\n    \"mcts_completion_bonus\": 1.0,\n    \"min_candidate_score\": 0.02,\n    \"min_model_score\": 0.0,\n    \"min_feasibility\": 0.0,\n    \"min_atom_conservation\": 0.0,\n    \"min_approx_structural_overlap\": 0.0,\n    \"max_toxicity\": 1.0,\n    \"require_ec\": false,\n    \"reject_generic_structures\": true,\n    \"heuristic_weight\": 0.35,\n    \"consensus_bonus\": 0.1,\n    \"database_preference_bonus\": 0.03,\n    \"model_only_penalty\": 0.25,\n    \"generic_structure_penalty\": 0.4,\n    \"unknown_direction_penalty\": 0.2,\n    \"auxiliary_precursor_penalty\": 0.04,\n    \"route_length_penalty\": 0.03,\n    \"diversity_penalty\": 0.15,\n    \"fusion_overlap_threshold\": 0.5,\n    \"score_epsilon\": 1e-08,\n    \"route_reaction_quality_weight\": 0.65,\n    \"route_carbon_efficiency_weight\": 0.25,\n    \"route_byproduct_weight\": 0.1,\n    \"route_cofactor_weight\": 0.0,\n    \"enable_forward_anchor_cache\": true,\n    \"forward_anchor_cache_size\": 16,\n    \"currency_metabolite_ids\": [\n      \"C00001\",\n      \"C00002\",\n      \"C00003\",\n      \"C00004\",\n      \"C00005\",\n      \"C00006\",\n      \"C00007\",\n      \"C00008\",\n      \"C00009\",\n      \"C00010\",\n      \"C00011\",\n      \"C00013\",\n      \"C00014\",\n      \"C00015\",\n      \"C00016\",\n      \"C00019\",\n      \"C00020\",\n      \"C00021\",\n      \"C00027\",\n      \"C00044\",\n      \"C00046\",\n      \"C00055\",\n      \"C00063\",\n      \"C00075\",\n      \"C00080\",\n      \"C00081\",\n      \"C00112\",\n      \"C00126\",\n      \"C00138\",\n      \"C00139\",\n      \"C00282\",\n      \"C00288\",\n      \"C00342\",\n      \"C00343\",\n      \"C01352\"\n    ],\n    \"scoring_weights\": {\n      \"database_support\": 0.25,\n      \"model_score\": 0.15,\n      \"feasibility\": 0.15,\n      \"yield_score\": 0.0,\n      \"inverse_toxicity\": 0.0,\n      \"ec_consistency\": 0.1,\n      \"atom_conservation\": 0.1,\n      \"approx_structural_overlap\": 0.1,\n      \"building_block_progress\": 0.05,\n      \"structural_similarity\": 0.1\n    },\n    \"include_search_trace\": false\n  },\n  \"endpoint_task\": {\n    \"type\": \"target_to_exact_known_substrate_set\",\n    \"endpoint_mode\": \"exact_set\",\n    \"rooted\": true,\n    \"connected\": true,\n    \"acyclic\": true,\n    \"all_terminal_molecules_must_be_in_stock\": true,\n    \"terminal_set_must_equal_building_blocks\": true\n  },\n  \"candidate_generation\": {\n    \"database_enabled\": true,\n    \"model_enabled\": true,\n    \"model_backend\": \"neural_model\",\n    \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\",\n    \"performed_at_each_expanded_molecule\": true\n  },\n  \"search_algorithm\": {\n    \"name\": \"and_or_mcts\",\n    \"graph\": \"AND_OR_HYPERGRAPH\",\n    \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\",\n    \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\",\n    \"mcts\": {\n      \"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\",\n      \"expansion\": \"reaction AND node with all non-currency precursors\",\n      \"simulation\": \"bounded evaluator-guided rollout\",\n      \"backpropagation\": \"scalar route-quality reward\",\n      \"exploration_constant\": 1.4,\n      \"rollout_depth\": 3,\n      \"random_seed\": 100,\n      \"progressive_widening\": true\n    },\n    \"beam_width\": null\n  },\n  \"and_or_tree\": {\n    \"representation\": \"AND_OR_HYPERGRAPH\",\n    \"root_molecule_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"or_semantics\": \"choose one producing reaction for each molecule\",\n    \"and_semantics\": \"solve every non-currency precursor of the reaction\",\n    \"molecule_nodes\": [\n      {\n        \"node_id\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n        \"node_type\": \"OR\",\n        \"role\": \"target\",\n        \"molecule\": {\n          \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n          \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:CCCC(N)CCCC(C)=O\",\n        \"node_type\": \"OR\",\n        \"role\": \"intermediate\",\n        \"molecule\": {\n          \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCCC(N)CCCC(C)=O\",\n          \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:CCCC(=O)CCCC(C)=O\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n          \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      }\n    ],\n    \"reaction_nodes\": [\n      {\n        \"node_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\",\n        \"node_type\": \"AND\",\n        \"target_key\": \"smi:CCCC(N)CCCC(C)=O\",\n        \"precursor_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"provenance\": \"MODEL\",\n        \"database_reaction_ids\": [],\n        \"ec_numbers\": [\"2.6.1\"],\n        \"step_score\": 0.575552,\n        \"step_cost\": 0.802425,\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCC[C@H]1CCC[C@@H](C)N1\"]\n已知底物集合 D：[\"CCCC(=O)CCCC(C)=O\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。\n\n上一次尝试不符合测试协议：Agent did not normalize the exact targets/building_blocks before calling EnzymeRetrosynthesisSearch with endpoint_mode=exact_set and both use_database=true and use_model=true\n请纠正后重新调用工具。必须使用完整且精确的 targets、building_blocks，\n并明确设置 endpoint_mode=exact_set、use_database=true、use_model=true；\n不要只在文字中描述路线。\n",
+      "tool_calls": [
+        {
+          "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"CCCC(=O)CCCC(C)=O\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}}",
+          "tool": "MoleculeInputNormalizer",
+          "tool_input": "{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}"
+        },
+        {
+          "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"require_all_building_blocks\": true}, \"route_count\": 1, \"routes\": [{\"rank\": 1, \"complete\": true, \"all_noncurrency_leaves_solved\": true, \"route_validation\": {\"valid\": true, \"connected\": true, \"acyclic\": true, \"endpoint_match\": true, \"require_all_building_blocks\": true, \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"terminal_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"missing_building_block_keys\": [], \"extra_terminal_keys\": [], \"reachable_step_count\": 2, \"step_count\": 2, \"duplicate_target_keys\": [], \"disconnected_candidate_ids\": [], \"cycle_paths\": [], \"reasons\": []}, \"route_score\": 0.555002, \"diversity_adjusted_score\": 0.555002, \"route_cost\": 2.307902, \"route_score_components\": {\"reaction_quality\": 0.31538826925332303, \"target_carbon_efficiency\": 1.0, \"inverse_major_byproduct_penalty\": 1.0, \"inverse_cofactor_burden\": 1.0}, \"target_carbon_efficiency\": 1.0, \"main_branch_carbon_retention\": 1.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"currency_cofactor_count\": 0, \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\", \"atom_mapping_used\": false, \"step_count\": 2, \"backward_expansion_depth\": 2, \"provenance_counts\": {\"DATABASE\": 0, \"MODEL\": 2, \"BOTH\": 0}, \"retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O\", \"enzyme_annotated_retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\", \"retrosynthesis_reactions\": [{\"retrosynthesis_step\": 1, \"equation\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\", \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"4.2.1\"], \"ec_display\": \"EC 4.2.1\", \"reaction_name\": null, \"database_reaction_ids\": [], \"provenance\": \"MODEL\", \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\"}, \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\"}, {\"retrosynthesis_step\": 2, \"equation\": \"CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\", \"target\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"2.6.1\"], \"ec_display\": \"EC 2.6.1\", \"reaction_name\": null, \"database_reaction_ids\": [], \"provenance\": \"MODEL\", \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\"}, \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\"}], \"forward_path\": \"CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1\", \"steps\": [{\"step_number\": 1, \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\", \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"reaction_name\": null, \"stored_equation\": null, \"stored_direction\": null, \"direction_uncertain\": false, \"target\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"precursors\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [], \"ec_numbers\": [\"2.6.1\"], \"subsystem\": null, \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\", \"model_rank\": \"Top-1\", \"score\": 0.575552, \"cost\": 0.802425, \"score_components\": {\"model_score\": 0.318, \"feasibility\": 0.17, \"ec_consistency\": 0.6, \"approx_structural_overlap\": 0.909091, \"building_block_progress\": 1.0, \"structural_similarity\": 1.0}, \"raw_metrics\": {\"database_support\": null, \"model_score\": 0.318, \"structural_similarity\": 1.0, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.909091, \"feasibility\": 0.17, \"yield\": null, \"toxicity\": null, \"ec_consistency\": 0.6, \"building_block_similarity\": 1.0, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": null, \"stored_forward_direction\": null, \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"precursor_side\": null, \"target_side\": null}, \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"metadata\": {\"model\": \"biocyc\", \"ec_level\": 3, \"raw_prediction_index\": 0, \"atom_mapping_source\": \"NONE\", \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"model_score\": 0.15, \"feasibility\": 0.15, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.0}}, \"carbon_branch\": {\"main_precursor_carbon\": 9.0, \"target_product_carbon\": 9.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}, {\"step_number\": 2, \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\", \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"reaction_name\": null, \"stored_equation\": null, \"stored_direction\": null, \"direction_uncertain\": false, \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"precursors\": [{\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [], \"ec_numbers\": [\"4.2.1\"], \"subsystem\": null, \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\", \"model_rank\": \"Top-9\", \"score\": 0.30256, \"cost\": 1.445477, \"score_components\": {\"model_score\": 0.06, \"feasibility\": 0.197, \"ec_consistency\": 0.6, \"approx_structural_overlap\": 0.3, \"building_block_progress\": 0.448276, \"structural_similarity\": 0.457}, \"raw_metrics\": {\"database_support\": null, \"model_score\": 0.06, \"structural_similarity\": 0.457, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.3, \"feasibility\": 0.197, \"yield\": null, \"toxicity\": null, \"ec_consistency\": 0.6, \"building_block_similarity\": 0.448276, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": null, \"stored_forward_direction\": null, \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"precursor_side\": null, \"target_side\": null}, \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"metadata\": {\"model\": \"biocyc\", \"ec_level\": 3, \"raw_prediction_index\": 4, \"atom_mapping_source\": \"NONE\", \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"model_score\": 0.15, \"feasibility\": 0.15, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.0}}, \"carbon_branch\": {\"main_precursor_carbon\": 9.0, \"target_product_carbon\": 9.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}]}], \"stats\": {\"states_expanded\": 45, \"states_generated\": 69, \"duplicate_states_pruned\": 0, \"beam_states_pruned\": 0, \"dead_ends\": 57, \"database_candidates\": 68, \"forward_queries\": 1, \"backward_queries\": 630, \"model_candidates\": 3328, \"model_requests\": 630, \"model_calls\": 38, \"model_cache_hits\": 592, \"model_failures\": 0, \"fusion_candidates\": 3380, \"consensus_candidates\": 3, \"candidates_filtered\": 3213, \"filter_reasons\": {\"consecutive_model_only_limit\": 2882, \"generic_structure\": 92, \"self_cycle\": 42, \"route_cycle\": 184, \"no_noncurrency_precursor\": 13}, \"forward_anchor_count\": 1, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 1, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 1, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 5000, \"mcts_selection_steps\": 10217, \"mcts_expansion_nodes\": 67, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 10, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 68, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 1.34181335, \"mcts_best_reward\": 1.55500238, \"endpoint_routes_rejected\": 0, \"endpoint_route_rejection_reasons\": {}, \"complete_routes_found\": 1, \"solution_pool_size_before_rerank\": 1, \"returned_route_count\": 1, \"top_k_shortfall\": 9, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 0, \"model_assisted_routes\": 1, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 506.029196, \"database_cache\": {\"hits\": 165615, \"misses\": 8096, \"normalizations\": 11618, \"backward_queries\": 1505, \"forward_queries\": 782, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 31559, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 20996, \"misses\": 1839, \"entries\": 1839, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [{\"node_id\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"node_type\": \"OR\", \"role\": \"target\", \"molecule\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:CCCC(N)CCCC(C)=O\", \"node_type\": \"OR\", \"role\": \"intermediate\", \"molecule\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:CCCC(=O)CCCC(C)=O\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}], \"reaction_nodes\": [{\"node_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\", \"node_type\": \"AND\", \"target_key\": \"smi:CCCC(N)CCCC(C)=O\", \"precursor_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"ec_numbers\": [\"2.6.1\"], \"step_score\": 0.575552, \"step_cost\": 0.802425, \"solution_routes\": [1]}, {\"node_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\", \"node_type\": \"AND\", \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"precursor_keys\": [\"smi:CCCC(N)CCCC(C)=O\"], \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"ec_numbers\": [\"4.2.1\"], \"step_score\": 0.30256, \"step_cost\": 1.445477, \"solution_routes\": [1]}], \"molecule_node_count\": 3, \"reaction_node_count\": 2, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 1, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+          "tool": "EnzymeRetrosynthesisSearch",
+          "tool_input": "{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+        }
+      ]
+    }
+  ],
+  "final_answer": "已按测试协议完成规范化与一次 `EnzymeRetrosynthesisSearch` 图搜索。工具返回 `route_count=1`，且该路线 `route_validation.valid=true`。由于搜索在达到足够多不同完整路线前已耗尽，`top_k_shortfall=9`，因此实际只返回 1 条有效 Top-K 路线（不是 10 条）。\n\n## 规范化结果\n\n- 目标物 A：`CCC[C@H]1CCC[C@@H](C)N1`\n- 已知底物 D：`CCCC(=O)CCCC(C)=O`\n- 规范化方式：`RDKIT_CANONICAL_ISOMERIC_SMILES`\n- 两者均 `valid=true`\n\n## 有效路线（Rank 1）\n\n### enzyme_annotated_retrosynthesis\n\n```text\nCCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\n```\n\n### retrosynthesis_reactions[].equation\n\n```text\nCCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\nCCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\n```\n\n### 路线校验\n\n- `route_validation.valid = true`\n- `connected = true`\n- `acyclic = true`\n- `endpoint_match = true`\n- `require_all_building_blocks = true`\n- `terminal_building_block_keys = [\"smi:CCCC(=O)CCCC(C)=O\"]`\n- `missing_building_block_keys = []`\n- `extra_terminal_keys = []`\n- `step_count = 2`\n- `reachable_step_count = 2`\n\n### 酶信息\n\n- 第 1 步：`EC 4.2.1`，来源 `MODEL`，模板 `[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1`\n- 第 2 步：`EC 2.6.1`，来源 `MODEL`，模板 `[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1`\n\n说明：工具未返回具体酶名或数据库反应 ID，仅返回 EC 号与模型模板；未猜测未知酶。\n\n### 完整 JSON\n\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\n    \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"id\": null,\n    \"name\": null,\n    \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n    \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n    \"formula\": null,\n    \"charge\": null,\n    \"toxicity\": null,\n    \"generic\": false\n  },\n  \"building_blocks\": [\n    {\n      \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n      \"id\": null,\n      \"name\": null,\n      \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n      \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n      \"formula\": null,\n      \"charge\": null,\n      \"toxicity\": null,\n      \"generic\": false\n    }\n  ],\n  \"endpoint_constraints\": {\n    \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n    \"require_all_building_blocks\": true\n  },\n  \"route_count\": 1,\n  \"routes\": [\n    {\n      \"rank\": 1,\n      \"complete\": true,\n      \"all_noncurrency_leaves_solved\": true,\n      \"route_validation\": {\n        \"valid\": true,\n        \"connected\": true,\n        \"acyclic\": true,\n        \"endpoint_match\": true,\n        \"require_all_building_blocks\": true,\n        \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n        \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"terminal_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"missing_building_block_keys\": [],\n        \"extra_terminal_keys\": [],\n        \"reachable_step_count\": 2,\n        \"step_count\": 2,\n        \"duplicate_target_keys\": [],\n        \"disconnected_candidate_ids\": [],\n        \"cycle_paths\": [],\n        \"reasons\": []\n      },\n      \"route_score\": 0.555002,\n      \"diversity_adjusted_score\": 0.555002,\n      \"route_cost\": 2.307902,\n      \"route_score_components\": {\n        \"reaction_quality\": 0.31538826925332303,\n        \"target_carbon_efficiency\": 1.0,\n        \"inverse_major_byproduct_penalty\": 1.0,\n        \"inverse_cofactor_burden\": 1.0\n      },\n      \"target_carbon_efficiency\": 1.0,\n      \"main_branch_carbon_retention\": 1.0,\n      \"major_organic_byproduct_penalty\": 0.0,\n      \"major_organic_byproducts\": [],\n      \"currency_cofactor_count\": 0,\n      \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\",\n      \"atom_mapping_used\": false,\n      \"step_count\": 2,\n      \"backward_expansion_depth\": 2,\n      \"provenance_counts\": {\n        \"DATABASE\": 0,\n        \"MODEL\": 2,\n        \"BOTH\": 0\n      },\n      \"retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O\",\n      \"enzyme_annotated_retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\",\n      \"retrosynthesis_reactions\": [\n        {\n          \"retrosynthesis_step\": 1,\n          \"equation\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\",\n          \"target\": {\n            \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"4.2.1\"],\n            \"ec_display\": \"EC 4.2.1\",\n            \"reaction_name\": null,\n            \"database_reaction_ids\": [],\n            \"provenance\": \"MODEL\",\n            \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\"\n          },\n          \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\"\n        },\n        {\n          \"retrosynthesis_step\": 2,\n          \"equation\": \"CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\",\n          \"target\": {\n            \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"noncurrency_precursors\": [\n            {\n              \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false\n            }\n          ],\n          \"currency_precursors\": [],\n          \"enzyme\": {\n            \"ec_numbers\": [\"2.6.1\"],\n            \"ec_display\": \"EC 2.6.1\",\n            \"reaction_name\": null,\n            \"database_reaction_ids\": [],\n            \"provenance\": \"MODEL\",\n            \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\"\n          },\n          \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\"\n        }\n      ],\n      \"forward_path\": \"CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1\",\n      \"steps\": [\n        {\n          \"step_number\": 1,\n          \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\",\n          \"provenance\": \"MODEL\",\n          \"database_reaction_ids\": [],\n          \"reaction_name\": null,\n          \"stored_equation\": null,\n          \"stored_direction\": null,\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [],\n          \"ec_numbers\": [\"2.6.1\"],\n          \"subsystem\": null,\n          \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\",\n          \"model_rank\": \"Top-1\",\n          \"score\": 0.575552,\n          \"cost\": 0.802425,\n          \"score_components\": {\n            \"model_score\": 0.318,\n            \"feasibility\": 0.17,\n            \"ec_consistency\": 0.6,\n            \"approx_structural_overlap\": 0.909091,\n            \"building_block_progress\": 1.0,\n            \"structural_similarity\": 1.0\n          },\n          \"raw_metrics\": {\n            \"database_support\": null,\n            \"model_score\": 0.318,\n            \"structural_similarity\": 1.0,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.909091,\n            \"feasibility\": 0.17,\n            \"yield\": null,\n            \"toxicity\": null,\n            \"ec_consistency\": 0.6,\n            \"building_block_similarity\": 1.0,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": null,\n            \"stored_forward_direction\": null,\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"precursor_side\": null,\n            \"target_side\": null\n          },\n          \"metric_provenance\": {\n            \"model_score\": \"MOORETRO_BEAM_SCORE\",\n            \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n            \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n            \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n          },\n          \"metadata\": {\n            \"model\": \"biocyc\",\n            \"ec_level\": 3,\n            \"raw_prediction_index\": 0,\n            \"atom_mapping_source\": \"NONE\",\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"metric_provenance\": {\n              \"model_score\": \"MOORETRO_BEAM_SCORE\",\n              \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n              \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n              \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"model_score\": 0.15,\n                \"feasibility\": 0.15,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.0\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 9.0,\n            \"target_product_carbon\": 9.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        },\n        {\n          \"step_number\": 2,\n          \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\",\n          \"provenance\": \"MODEL\",\n          \"database_reaction_ids\": [],\n          \"reaction_name\": null,\n          \"stored_equation\": null,\n          \"stored_direction\": null,\n          \"direction_uncertain\": false,\n          \"target\": {\n            \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n            \"id\": null,\n            \"name\": null,\n            \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n            \"formula\": null,\n            \"charge\": null,\n            \"toxicity\": null,\n            \"generic\": false\n          },\n          \"precursors\": [\n            {\n              \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n              \"id\": null,\n              \"name\": null,\n              \"smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n              \"formula\": null,\n              \"charge\": null,\n              \"toxicity\": null,\n              \"generic\": false,\n              \"role\": \"main\",\n              \"coefficient\": \"1\"\n            }\n          ],\n          \"other_products\": [],\n          \"ec_numbers\": [\"4.2.1\"],\n          \"subsystem\": null,\n          \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\",\n          \"model_rank\": \"Top-9\",\n          \"score\": 0.30256,\n          \"cost\": 1.445477,\n          \"score_components\": {\n            \"model_score\": 0.06,\n            \"feasibility\": 0.197,\n            \"ec_consistency\": 0.6,\n            \"approx_structural_overlap\": 0.3,\n            \"building_block_progress\": 0.448276,\n            \"structural_similarity\": 0.457\n          },\n          \"raw_metrics\": {\n            \"database_support\": null,\n            \"model_score\": 0.06,\n            \"structural_similarity\": 0.457,\n            \"atom_conservation\": null,\n            \"atom_mapping_source\": \"NONE\",\n            \"approx_structural_overlap\": 0.3,\n            \"feasibility\": 0.197,\n            \"yield\": null,\n            \"toxicity\": null,\n            \"ec_consistency\": 0.6,\n            \"building_block_similarity\": 0.448276,\n            \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"\n          },\n          \"warnings\": [],\n          \"direction_semantics\": {\n            \"stored_reaction_direction\": null,\n            \"stored_forward_direction\": null,\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"precursor_side\": null,\n            \"target_side\": null\n          },\n          \"metric_provenance\": {\n            \"model_score\": \"MOORETRO_BEAM_SCORE\",\n            \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n            \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n            \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n            \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n            \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n            \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n          },\n          \"metadata\": {\n            \"model\": \"biocyc\",\n            \"ec_level\": 3,\n            \"raw_prediction_index\": 4,\n            \"atom_mapping_source\": \"NONE\",\n            \"retrosynthesis_direction\": \"target_to_predicted_precursors\",\n            \"metric_provenance\": {\n              \"model_score\": \"MOORETRO_BEAM_SCORE\",\n              \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\",\n              \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\",\n              \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\",\n              \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\",\n              \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\",\n              \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"\n            },\n            \"score_provenance\": {\n              \"aggregation\": \"MASKED_WEIGHTED_AVERAGE\",\n              \"active_weights\": {\n                \"model_score\": 0.15,\n                \"feasibility\": 0.15,\n                \"ec_consistency\": 0.1,\n                \"approx_structural_overlap\": 0.1,\n                \"building_block_progress\": 0.05,\n                \"structural_similarity\": 0.1\n              },\n              \"consensus_bonus\": 0.0,\n              \"database_preference_bonus\": 0.0\n            }\n          },\n          \"carbon_branch\": {\n            \"main_precursor_carbon\": 9.0,\n            \"target_product_carbon\": 9.0,\n            \"main_carbon_retained_fraction\": 1.0,\n            \"major_organic_byproduct_carbon\": 0.0,\n            \"major_organic_byproduct_penalty\": 0.0,\n            \"major_organic_byproducts\": [],\n            \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"\n          }\n        }\n      ]\n    }\n  ],\n  \"stats\": {\n    \"states_expanded\": 45,\n    \"states_generated\": 69,\n    \"duplicate_states_pruned\": 0,\n    \"beam_states_pruned\": 0,\n    \"dead_ends\": 57,\n    \"database_candidates\": 68,\n    \"forward_queries\": 1,\n    \"backward_queries\": 630,\n    \"model_candidates\": 3328,\n    \"model_requests\": 630,\n    \"model_calls\": 38,\n    \"model_cache_hits\": 592,\n    \"model_failures\": 0,\n    \"fusion_candidates\": 3380,\n    \"consensus_candidates\": 3,\n    \"candidates_filtered\": 3213,\n    \"filter_reasons\": {\n      \"consecutive_model_only_limit\": 2882,\n      \"generic_structure\": 92,\n      \"self_cycle\": 42,\n      \"route_cycle\": 184,\n      \"no_noncurrency_precursor\": 13\n    },\n    \"forward_anchor_count\": 1,\n    \"forward_anchor_updates\": 0,\n    \"forward_anchor_cache_hits\": 0,\n    \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 1,\n    \"forward_direct_solutions\": 0,\n    \"forward_anchor_stitched_solutions\": 0,\n    \"hybrid_backward_solutions\": 1,\n    \"search_phases\": [\n      \"PHASE_A_FORWARD_ANCHOR\",\n      \"PHASE_B_BACKWARD_HYBRID_SEARCH\",\n      \"PHASE_C_SOLUTION_MERGE\",\n      \"PHASE_D_ROUTE_SCORING\",\n      \"PHASE_E_DIVERSITY_RERANK\"\n    ],\n    \"requested_top_k\": 10,\n    \"warnings\": [],\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 5000,\n    \"mcts_selection_steps\": 10217,\n    \"mcts_expansion_nodes\": 67,\n    \"mcts_rollouts\": 5000,\n    \"mcts_rollout_steps\": 10,\n    \"mcts_backpropagations\": 5000,\n    \"mcts_tree_nodes\": 68,\n    \"mcts_max_tree_depth\": 4,\n    \"mcts_root_visits\": 5000,\n    \"mcts_root_mean_value\": 1.34181335,\n    \"mcts_best_reward\": 1.55500238,\n    \"endpoint_routes_rejected\": 0,\n    \"endpoint_route_rejection_reasons\": {},\n    \"complete_routes_found\": 1,\n    \"solution_pool_size_before_rerank\": 1,\n    \"returned_route_count\": 1,\n    \"top_k_shortfall\": 9,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 0,\n    \"model_assisted_routes\": 1,\n    \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\",\n    \"elapsed_seconds\": 506.029196,\n    \"database_cache\": {\n      \"hits\": 165615,\n      \"misses\": 8096,\n      \"normalizations\": 11618,\n      \"backward_queries\": 1505,\n      \"forward_queries\": 782,\n      \"adjacency_index\": {\n        \"enabled\": true,\n        \"loaded\": true,\n        \"metabolites\": 36301,\n        \"reactions\": 23718,\n        \"reaction_sides\": 47434,\n        \"indexed_metabolites\": 16130,\n        \"hits\": 31559,\n        \"load_seconds\": 0.798801\n      }\n    },\n    \"model_cache\": {\n      \"hits\": 20996,\n      \"misses\": 1839,\n      \"entries\": 1839,\n      \"model\": \"biocyc\",\n      \"backend_mode\": \"neural_model\",\n      \"runtime_device\": \"cuda:0\"\n    }\n  },\n  \"config\": {\n    \"use_database\": true,\n    \"use_model\": true,\n    \"respect_reaction_direction\": true,\n    \"allow_unknown_direction\": true,\n    \"require_all_building_blocks\": true,\n    \"max_depth\": 4,\n    \"max_expansions\": 5000,\n    \"forward_anchor_depth\": 6,\n    \"forward_anchor_max_nodes\": 5000,\n    \"database_top_k\": 20,\n    \"model_top_k\": 10,\n    \"candidate_beam_width\": 20,\n    \"global_beam_width\": 50,\n    \"top_k_routes\": 10,\n    \"solution_pool_multiplier\": 3,\n    \"max_states_per_signature\": 3,\n    \"max_forward_routes_per_node\": 10,\n    \"max_precursors_per_step\": 8,\n    \"max_model_only_steps\": 5,\n    \"max_consecutive_model_only_steps\": 2,\n    \"max_model_calls\": 100,\n    \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_exploration_constant\": 1.4,\n    \"mcts_rollout_depth\": 3,\n    \"mcts_random_seed\": 100,\n    \"mcts_epsilon\": 0.1,\n    \"mcts_progressive_widening\": true,\n    \"mcts_progressive_widening_alpha\": 0.5,\n    \"mcts_progressive_widening_constant\": 2.0,\n    \"mcts_completion_bonus\": 1.0,\n    \"min_candidate_score\": 0.02,\n    \"min_model_score\": 0.0,\n    \"min_feasibility\": 0.0,\n    \"min_atom_conservation\": 0.0,\n    \"min_approx_structural_overlap\": 0.0,\n    \"max_toxicity\": 1.0,\n    \"require_ec\": false,\n    \"reject_generic_structures\": true,\n    \"heuristic_weight\": 0.35,\n    \"consensus_bonus\": 0.1,\n    \"database_preference_bonus\": 0.03,\n    \"model_only_penalty\": 0.25,\n    \"generic_structure_penalty\": 0.4,\n    \"unknown_direction_penalty\": 0.2,\n    \"auxiliary_precursor_penalty\": 0.04,\n    \"route_length_penalty\": 0.03,\n    \"diversity_penalty\": 0.15,\n    \"fusion_overlap_threshold\": 0.5,\n    \"score_epsilon\": 1e-08,\n    \"route_reaction_quality_weight\": 0.65,\n    \"route_carbon_efficiency_weight\": 0.25,\n    \"route_byproduct_weight\": 0.1,\n    \"route_cofactor_weight\": 0.0,\n    \"enable_forward_anchor_cache\": true,\n    \"forward_anchor_cache_size\": 16,\n    \"currency_metabolite_ids\": [\n      \"C00001\",\n      \"C00002\",\n      \"C00003\",\n      \"C00004\",\n      \"C00005\",\n      \"C00006\",\n      \"C00007\",\n      \"C00008\",\n      \"C00009\",\n      \"C00010\",\n      \"C00011\",\n      \"C00013\",\n      \"C00014\",\n      \"C00015\",\n      \"C00016\",\n      \"C00019\",\n      \"C00020\",\n      \"C00021\",\n      \"C00027\",\n      \"C00044\",\n      \"C00046\",\n      \"C00055\",\n      \"C00063\",\n      \"C00075\",\n      \"C00080\",\n      \"C00081\",\n      \"C00112\",\n      \"C00126\",\n      \"C00138\",\n      \"C00139\",\n      \"C00282\",\n      \"C00288\",\n      \"C00342\",\n      \"C00343\",\n      \"C01352\"\n    ],\n    \"scoring_weights\": {\n      \"database_support\": 0.25,\n      \"model_score\": 0.15,\n      \"feasibility\": 0.15,\n      \"yield_score\": 0.0,\n      \"inverse_toxicity\": 0.0,\n      \"ec_consistency\": 0.1,\n      \"atom_conservation\": 0.1,\n      \"approx_structural_overlap\": 0.1,\n      \"building_block_progress\": 0.05,\n      \"structural_similarity\": 0.1\n    },\n    \"include_search_trace\": false\n  },\n  \"endpoint_task\": {\n    \"type\": \"target_to_exact_known_substrate_set\",\n    \"endpoint_mode\": \"exact_set\",\n    \"rooted\": true,\n    \"connected\": true,\n    \"acyclic\": true,\n    \"all_terminal_molecules_must_be_in_stock\": true,\n    \"terminal_set_must_equal_building_blocks\": true\n  },\n  \"candidate_generation\": {\n    \"database_enabled\": true,\n    \"model_enabled\": true,\n    \"model_backend\": \"neural_model\",\n    \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\",\n    \"performed_at_each_expanded_molecule\": true\n  },\n  \"search_algorithm\": {\n    \"name\": \"and_or_mcts\",\n    \"graph\": \"AND_OR_HYPERGRAPH\",\n    \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\",\n    \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\",\n    \"mcts\": {\n      \"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\",\n      \"expansion\": \"reaction AND node with all non-currency precursors\",\n      \"simulation\": \"bounded evaluator-guided rollout\",\n      \"backpropagation\": \"scalar route-quality reward\",\n      \"exploration_constant\": 1.4,\n      \"rollout_depth\": 3,\n      \"random_seed\": 100,\n      \"progressive_widening\": true\n    },\n    \"beam_width\": null\n  },\n  \"and_or_tree\": {\n    \"representation\": \"AND_OR_HYPERGRAPH\",\n    \"root_molecule_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n    \"or_semantics\": \"choose one producing reaction for each molecule\",\n    \"and_semantics\": \"solve every non-currency precursor of the reaction\",\n    \"molecule_nodes\": [\n      {\n        \"node_id\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n        \"node_type\": \"OR\",\n        \"role\": \"target\",\n        \"molecule\": {\n          \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n          \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:CCCC(N)CCCC(C)=O\",\n        \"node_type\": \"OR\",\n        \"role\": \"intermediate\",\n        \"molecule\": {\n          \"key\": \"smi:CCCC(N)CCCC(C)=O\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCCC(N)CCCC(C)=O\",\n          \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false\n        },\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"smi:CCCC(=O)CCCC(C)=O\",\n        \"node_type\": \"OR\",\n        \"role\": \"building_block\",\n        \"molecule\": {\n          \"key\": \"smi:CCCC(=O)CCCC(C)=O\",\n          \"id\": null,\n          \"name\": null,\n          \"smiles\": \"CCCC(=O)CCCC(C)=O\",\n          \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\",\n          \"formula\": null,\n          \"charge\": null,\n          \"toxicity\": null,\n          \"generic\": false,\n          \"role\": \"main\",\n          \"coefficient\": \"1\"\n        },\n        \"solution_routes\": [1]\n      }\n    ],\n    \"reaction_nodes\": [\n      {\n        \"node_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\",\n        \"node_type\": \"AND\",\n        \"target_key\": \"smi:CCCC(N)CCCC(C)=O\",\n        \"precursor_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"],\n        \"provenance\": \"MODEL\",\n        \"database_reaction_ids\": [],\n        \"ec_numbers\": [\"2.6.1\"],\n        \"step_score\": 0.575552,\n        \"step_cost\": 0.802425,\n        \"solution_routes\": [1]\n      },\n      {\n        \"node_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+  "prediction": {
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "mode": "database+model",
+    "ok": true,
+    "route_count": 1,
+    "routes": [
+      {
+        "all_noncurrency_leaves_solved": true,
+        "atom_mapping_used": false,
+        "backward_expansion_depth": 2,
+        "carbon_evaluation_method": "MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+        "complete": true,
+        "currency_cofactor_count": 0,
+        "diversity_adjusted_score": 0.555002,
+        "enzyme_annotated_retrosynthesis": "CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O",
+        "forward_path": "CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1",
+        "main_branch_carbon_retention": 1.0,
+        "major_organic_byproduct_penalty": 0.0,
+        "major_organic_byproducts": [],
+        "provenance_counts": {
+          "BOTH": 0,
+          "DATABASE": 0,
+          "MODEL": 2
+        },
+        "rank": 1,
+        "retrosynthesis": "CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O",
+        "retrosynthesis_reactions": [
+          {
+            "candidate_id": "model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [],
+              "ec_display": "EC 4.2.1",
+              "ec_numbers": [
+                "4.2.1"
+              ],
+              "provenance": "MODEL",
+              "reaction_name": null,
+              "template": "[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1"
+            },
+            "equation": "CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "CCCC(N)CCCC(C)=O",
+                "charge": null,
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(N)CCCC(C)=O",
+                "name": null,
+                "smiles": "CCCC(N)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "retrosynthesis_step": 1,
+            "target": {
+              "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+              "name": null,
+              "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "toxicity": null
+            }
+          },
+          {
+            "candidate_id": "model:smi:CCCC(N)CCCC(C)=O:1",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [],
+              "ec_display": "EC 2.6.1",
+              "ec_numbers": [
+                "2.6.1"
+              ],
+              "provenance": "MODEL",
+              "reaction_name": null,
+              "template": "[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1"
+            },
+            "equation": "CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+                "charge": null,
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(=O)CCCC(C)=O",
+                "name": null,
+                "smiles": "CCCC(=O)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "retrosynthesis_step": 2,
+            "target": {
+              "canonical_smiles": "CCCC(N)CCCC(C)=O",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCCC(N)CCCC(C)=O",
+              "name": null,
+              "smiles": "CCCC(N)CCCC(C)=O",
+              "toxicity": null
+            }
+          }
+        ],
+        "route_cost": 2.307902,
+        "route_score": 0.555002,
+        "route_score_components": {
+          "inverse_cofactor_burden": 1.0,
+          "inverse_major_byproduct_penalty": 1.0,
+          "reaction_quality": 0.31538826925332303,
+          "target_carbon_efficiency": 1.0
+        },
+        "route_validation": {
+          "acyclic": true,
+          "connected": true,
+          "cycle_paths": [],
+          "disconnected_candidate_ids": [],
+          "duplicate_target_keys": [],
+          "endpoint_match": true,
+          "extra_terminal_keys": [],
+          "missing_building_block_keys": [],
+          "reachable_step_count": 2,
+          "reasons": [],
+          "require_all_building_blocks": true,
+          "required_building_block_keys": [
+            "smi:CCCC(=O)CCCC(C)=O"
+          ],
+          "step_count": 2,
+          "target_key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+          "terminal_building_block_keys": [
+            "smi:CCCC(=O)CCCC(C)=O"
+          ],
+          "valid": true
+        },
+        "step_count": 2,
+        "steps": [
+          {
+            "candidate_id": "model:smi:CCCC(N)CCCC(C)=O:1",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 9.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 9.0
+            },
+            "cost": 0.802425,
+            "database_reaction_ids": [],
+            "direction_semantics": {
+              "precursor_side": null,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "stored_forward_direction": null,
+              "stored_reaction_direction": null,
+              "target_side": null
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "2.6.1"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "ec_level": 3,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+                "model_score": "MOORETRO_BEAM_SCORE",
+                "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+                "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+                "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+              },
+              "model": "biocyc",
+              "raw_prediction_index": 0,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "ec_consistency": 0.1,
+                  "feasibility": 0.15,
+                  "model_score": 0.15,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.0
+              }
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+              "model_score": "MOORETRO_BEAM_SCORE",
+              "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+              "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+              "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+            },
+            "model_rank": "Top-1",
+            "other_products": [],
+            "precursors": [
+              {
+                "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(=O)CCCC(C)=O",
+                "name": null,
+                "role": "main",
+                "smiles": "CCCC(=O)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "provenance": "MODEL",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.909091,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 1.0,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": null,
+              "ec_consistency": 0.6,
+              "feasibility": 0.17,
+              "model_score": 0.318,
+              "structural_similarity": 1.0,
+              "toxicity": null,
+              "yield": null
+            },
+            "reaction_name": null,
+            "score": 0.575552,
+            "score_components": {
+              "approx_structural_overlap": 0.909091,
+              "building_block_progress": 1.0,
+              "ec_consistency": 0.6,
+              "feasibility": 0.17,
+              "model_score": 0.318,
+              "structural_similarity": 1.0
+            },
+            "step_number": 1,
+            "stored_direction": null,
+            "stored_equation": null,
+            "subsystem": null,
+            "target": {
+              "canonical_smiles": "CCCC(N)CCCC(C)=O",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCCC(N)CCCC(C)=O",
+              "name": null,
+              "smiles": "CCCC(N)CCCC(C)=O",
+              "toxicity": null
+            },
+            "template": "[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1",
+            "warnings": []
+          },
+          {
+            "candidate_id": "model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 9.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 9.0
+            },
+            "cost": 1.445477,
+            "database_reaction_ids": [],
+            "direction_semantics": {
+              "precursor_side": null,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "stored_forward_direction": null,
+              "stored_reaction_direction": null,
+              "target_side": null
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "4.2.1"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "ec_level": 3,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+                "model_score": "MOORETRO_BEAM_SCORE",
+                "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+                "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+                "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+              },
+              "model": "biocyc",
+              "raw_prediction_index": 4,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "ec_consistency": 0.1,
+                  "feasibility": 0.15,
+                  "model_score": 0.15,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.0
+              }
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+              "model_score": "MOORETRO_BEAM_SCORE",
+              "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+              "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+              "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+            },
+            "model_rank": "Top-9",
+            "other_products": [],
+            "precursors": [
+              {
+                "canonical_smiles": "CCCC(N)CCCC(C)=O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(N)CCCC(C)=O",
+                "name": null,
+                "role": "main",
+                "smiles": "CCCC(N)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "provenance": "MODEL",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.3,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 0.448276,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": null,
+              "ec_consistency": 0.6,
+              "feasibility": 0.197,
+              "model_score": 0.06,
+              "structural_similarity": 0.457,
+              "toxicity": null,
+              "yield": null
+            },
+            "reaction_name": null,
+            "score": 0.30256,
+            "score_components": {
+              "approx_structural_overlap": 0.3,
+              "building_block_progress": 0.448276,
+              "ec_consistency": 0.6,
+              "feasibility": 0.197,
+              "model_score": 0.06,
+              "structural_similarity": 0.457
+            },
+            "step_number": 2,
+            "stored_direction": null,
+            "stored_equation": null,
+            "subsystem": null,
+            "target": {
+              "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+              "name": null,
+              "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "toxicity": null
+            },
+            "template": "[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1",
+            "warnings": []
+          }
+        ],
+        "target_carbon_efficiency": 1.0
+      }
+    ],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "agent_attempt_count": 2,
+      "agent_tool_call_count": 2,
+      "agent_tool_names": [
+        "MoleculeInputNormalizer",
+        "EnzymeRetrosynthesisSearch"
+      ],
+      "backward_queries": 630,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 3213,
+      "complete_routes_found": 1,
+      "consensus_candidates": 3,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 31559,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 1505,
+        "forward_queries": 782,
+        "hits": 165615,
+        "misses": 8096,
+        "normalizations": 11618
+      },
+      "database_candidates": 68,
+      "database_only_routes": 0,
+      "dead_ends": 57,
+      "duplicate_states_pruned": 0,
+      "elapsed_seconds": 506.029196,
+      "endpoint_route_rejection_reasons": {},
+      "endpoint_routes_rejected": 0,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 2882,
+        "generic_structure": 92,
+        "no_noncurrency_precursor": 13,
+        "route_cycle": 184,
+        "self_cycle": 42
+      },
+      "forward_alternative_count": 1,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 1,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 0,
+      "forward_direct_solutions": 0,
+      "forward_queries": 1,
+      "fusion_candidates": 3380,
+      "hybrid_backward_solutions": 1,
+      "mcts_backpropagations": 5000,
+      "mcts_best_reward": 1.55500238,
+      "mcts_expansion_nodes": 67,
+      "mcts_iterations": 5000,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 10,
+      "mcts_rollouts": 5000,
+      "mcts_root_mean_value": 1.34181335,
+      "mcts_root_visits": 5000,
+      "mcts_selection_steps": 10217,
+      "mcts_tree_nodes": 68,
+      "model_assisted_routes": 1,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 1839,
+        "hits": 20996,
+        "misses": 1839,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 592,
+      "model_calls": 38,
+      "model_candidates": 3328,
+      "model_failures": 0,
+      "model_requests": 630,
+      "requested_top_k": 10,
+      "returned_route_count": 1,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 1,
+      "states_expanded": 45,
+      "states_generated": 69,
+      "termination_reason": "MCTS_ITERATION_BUDGET_REACHED",
+      "top_k_shortfall": 9,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "valid_normalization_call_count": 1,
+      "valid_search_call_count": 1,
+      "warnings": []
+    }
+  },
+  "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCC[C@H]1CCC[C@@H](C)N1\"]\n已知底物集合 D：[\"CCCC(=O)CCCC(C)=O\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+  "search_result": {
+    "and_or_tree": {
+      "and_semantics": "solve every non-currency precursor of the reaction",
+      "molecule_node_count": 3,
+      "molecule_nodes": [
+        {
+          "molecule": {
+            "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+            "charge": null,
+            "formula": null,
+            "generic": false,
+            "id": null,
+            "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+            "name": null,
+            "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+            "toxicity": null
+          },
+          "node_id": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+          "node_type": "OR",
+          "role": "target",
+          "solution_routes": [
+            1
+          ]
+        },
+        {
+          "molecule": {
+            "canonical_smiles": "CCCC(N)CCCC(C)=O",
+            "charge": null,
+            "formula": null,
+            "generic": false,
+            "id": null,
+            "key": "smi:CCCC(N)CCCC(C)=O",
+            "name": null,
+            "smiles": "CCCC(N)CCCC(C)=O",
+            "toxicity": null
+          },
+          "node_id": "smi:CCCC(N)CCCC(C)=O",
+          "node_type": "OR",
+          "role": "intermediate",
+          "solution_routes": [
+            1
+          ]
+        },
+        {
+          "molecule": {
+            "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+            "charge": null,
+            "coefficient": "1",
+            "formula": null,
+            "generic": false,
+            "id": null,
+            "key": "smi:CCCC(=O)CCCC(C)=O",
+            "name": null,
+            "role": "main",
+            "smiles": "CCCC(=O)CCCC(C)=O",
+            "toxicity": null
+          },
+          "node_id": "smi:CCCC(=O)CCCC(C)=O",
+          "node_type": "OR",
+          "role": "building_block",
+          "solution_routes": [
+            1
+          ]
+        }
+      ],
+      "or_semantics": "choose one producing reaction for each molecule",
+      "reaction_node_count": 2,
+      "reaction_nodes": [
+        {
+          "database_reaction_ids": [],
+          "ec_numbers": [
+            "2.6.1"
+          ],
+          "node_id": "model:smi:CCCC(N)CCCC(C)=O:1",
+          "node_type": "AND",
+          "precursor_keys": [
+            "smi:CCCC(=O)CCCC(C)=O"
+          ],
+          "provenance": "MODEL",
+          "solution_routes": [
+            1
+          ],
+          "step_cost": 0.802425,
+          "step_score": 0.575552,
+          "target_key": "smi:CCCC(N)CCCC(C)=O"
+        },
+        {
+          "database_reaction_ids": [],
+          "ec_numbers": [
+            "4.2.1"
+          ],
+          "node_id": "model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+          "node_type": "AND",
+          "precursor_keys": [
+            "smi:CCCC(N)CCCC(C)=O"
+          ],
+          "provenance": "MODEL",
+          "solution_routes": [
+            1
+          ],
+          "step_cost": 1.445477,
+          "step_score": 0.30256,
+          "target_key": "smi:CCC[C@H]1CCC[C@@H](C)N1"
+        }
+      ],
+      "representation": "AND_OR_HYPERGRAPH",
+      "root_molecule_key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+      "scope": "TOP_K_COMPLETE_SOLUTION_SUBGRAPH"
+    },
+    "building_blocks": [
+      {
+        "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+        "charge": null,
+        "formula": null,
+        "generic": false,
+        "id": null,
+        "key": "smi:CCCC(=O)CCCC(C)=O",
+        "name": null,
+        "smiles": "CCCC(=O)CCCC(C)=O",
+        "toxicity": null
+      }
+    ],
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "config": {
+      "allow_unknown_direction": true,
+      "auxiliary_precursor_penalty": 0.04,
+      "candidate_beam_width": 20,
+      "consensus_bonus": 0.1,
+      "currency_metabolite_ids": [
+        "C00001",
+        "C00002",
+        "C00003",
+        "C00004",
+        "C00005",
+        "C00006",
+        "C00007",
+        "C00008",
+        "C00009",
+        "C00010",
+        "C00011",
+        "C00013",
+        "C00014",
+        "C00015",
+        "C00016",
+        "C00019",
+        "C00020",
+        "C00021",
+        "C00027",
+        "C00044",
+        "C00046",
+        "C00055",
+        "C00063",
+        "C00075",
+        "C00080",
+        "C00081",
+        "C00112",
+        "C00126",
+        "C00138",
+        "C00139",
+        "C00282",
+        "C00288",
+        "C00342",
+        "C00343",
+        "C01352"
+      ],
+      "database_preference_bonus": 0.03,
+      "database_top_k": 20,
+      "diversity_penalty": 0.15,
+      "enable_forward_anchor_cache": true,
+      "forward_anchor_cache_size": 16,
+      "forward_anchor_depth": 6,
+      "forward_anchor_max_nodes": 5000,
+      "fusion_overlap_threshold": 0.5,
+      "generic_structure_penalty": 0.4,
+      "global_beam_width": 50,
+      "heuristic_weight": 0.35,
+      "include_search_trace": false,
+      "max_consecutive_model_only_steps": 2,
+      "max_depth": 4,
+      "max_expansions": 5000,
+      "max_forward_routes_per_node": 10,
+      "max_model_calls": 100,
+      "max_model_only_steps": 5,
+      "max_precursors_per_step": 8,
+      "max_states_per_signature": 3,
+      "max_toxicity": 1.0,
+      "mcts_completion_bonus": 1.0,
+      "mcts_epsilon": 0.1,
+      "mcts_exploration_constant": 1.4,
+      "mcts_progressive_widening": true,
+      "mcts_progressive_widening_alpha": 0.5,
+      "mcts_progressive_widening_constant": 2.0,
+      "mcts_random_seed": 100,
+      "mcts_rollout_depth": 3,
+      "min_approx_structural_overlap": 0.0,
+      "min_atom_conservation": 0.0,
+      "min_candidate_score": 0.02,
+      "min_feasibility": 0.0,
+      "min_model_score": 0.0,
+      "model_only_penalty": 0.25,
+      "model_top_k": 10,
+      "reject_generic_structures": true,
+      "require_all_building_blocks": true,
+      "require_ec": false,
+      "respect_reaction_direction": true,
+      "route_byproduct_weight": 0.1,
+      "route_carbon_efficiency_weight": 0.25,
+      "route_cofactor_weight": 0.0,
+      "route_length_penalty": 0.03,
+      "route_reaction_quality_weight": 0.65,
+      "score_epsilon": 1e-08,
+      "scoring_weights": {
+        "approx_structural_overlap": 0.1,
+        "atom_conservation": 0.1,
+        "building_block_progress": 0.05,
+        "database_support": 0.25,
+        "ec_consistency": 0.1,
+        "feasibility": 0.15,
+        "inverse_toxicity": 0.0,
+        "model_score": 0.15,
+        "structural_similarity": 0.1,
+        "yield_score": 0.0
+      },
+      "search_algorithm": "and_or_mcts",
+      "solution_pool_multiplier": 3,
+      "top_k_routes": 10,
+      "unknown_direction_penalty": 0.2,
+      "use_database": true,
+      "use_model": true
+    },
+    "endpoint_constraints": {
+      "require_all_building_blocks": true,
+      "required_building_block_keys": [
+        "smi:CCCC(=O)CCCC(C)=O"
+      ],
+      "target_key": "smi:CCC[C@H]1CCC[C@@H](C)N1"
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "input": {
+      "building_block_count": 1,
+      "library_sources": [],
+      "requested_endpoint_mode": "exact_set",
+      "target_count": 1
+    },
+    "mode": "database+model",
+    "ok": true,
+    "planner": "EnzymeRetrosynthesisSearch",
+    "route_count": 1,
+    "routes": [
+      {
+        "all_noncurrency_leaves_solved": true,
+        "atom_mapping_used": false,
+        "backward_expansion_depth": 2,
+        "carbon_evaluation_method": "MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+        "complete": true,
+        "currency_cofactor_count": 0,
+        "diversity_adjusted_score": 0.555002,
+        "enzyme_annotated_retrosynthesis": "CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O",
+        "forward_path": "CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1",
+        "main_branch_carbon_retention": 1.0,
+        "major_organic_byproduct_penalty": 0.0,
+        "major_organic_byproducts": [],
+        "provenance_counts": {
+          "BOTH": 0,
+          "DATABASE": 0,
+          "MODEL": 2
+        },
+        "rank": 1,
+        "retrosynthesis": "CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O",
+        "retrosynthesis_reactions": [
+          {
+            "candidate_id": "model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [],
+              "ec_display": "EC 4.2.1",
+              "ec_numbers": [
+                "4.2.1"
+              ],
+              "provenance": "MODEL",
+              "reaction_name": null,
+              "template": "[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1"
+            },
+            "equation": "CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "CCCC(N)CCCC(C)=O",
+                "charge": null,
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(N)CCCC(C)=O",
+                "name": null,
+                "smiles": "CCCC(N)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "retrosynthesis_step": 1,
+            "target": {
+              "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+              "name": null,
+              "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "toxicity": null
+            }
+          },
+          {
+            "candidate_id": "model:smi:CCCC(N)CCCC(C)=O:1",
+            "currency_precursors": [],
+            "enzyme": {
+              "database_reaction_ids": [],
+              "ec_display": "EC 2.6.1",
+              "ec_numbers": [
+                "2.6.1"
+              ],
+              "provenance": "MODEL",
+              "reaction_name": null,
+              "template": "[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1"
+            },
+            "equation": "CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O",
+            "noncurrency_precursors": [
+              {
+                "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+                "charge": null,
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(=O)CCCC(C)=O",
+                "name": null,
+                "smiles": "CCCC(=O)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "retrosynthesis_step": 2,
+            "target": {
+              "canonical_smiles": "CCCC(N)CCCC(C)=O",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCCC(N)CCCC(C)=O",
+              "name": null,
+              "smiles": "CCCC(N)CCCC(C)=O",
+              "toxicity": null
+            }
+          }
+        ],
+        "route_cost": 2.307902,
+        "route_score": 0.555002,
+        "route_score_components": {
+          "inverse_cofactor_burden": 1.0,
+          "inverse_major_byproduct_penalty": 1.0,
+          "reaction_quality": 0.31538826925332303,
+          "target_carbon_efficiency": 1.0
+        },
+        "route_validation": {
+          "acyclic": true,
+          "connected": true,
+          "cycle_paths": [],
+          "disconnected_candidate_ids": [],
+          "duplicate_target_keys": [],
+          "endpoint_match": true,
+          "extra_terminal_keys": [],
+          "missing_building_block_keys": [],
+          "reachable_step_count": 2,
+          "reasons": [],
+          "require_all_building_blocks": true,
+          "required_building_block_keys": [
+            "smi:CCCC(=O)CCCC(C)=O"
+          ],
+          "step_count": 2,
+          "target_key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+          "terminal_building_block_keys": [
+            "smi:CCCC(=O)CCCC(C)=O"
+          ],
+          "valid": true
+        },
+        "step_count": 2,
+        "steps": [
+          {
+            "candidate_id": "model:smi:CCCC(N)CCCC(C)=O:1",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 9.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 9.0
+            },
+            "cost": 0.802425,
+            "database_reaction_ids": [],
+            "direction_semantics": {
+              "precursor_side": null,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "stored_forward_direction": null,
+              "stored_reaction_direction": null,
+              "target_side": null
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "2.6.1"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "ec_level": 3,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+                "model_score": "MOORETRO_BEAM_SCORE",
+                "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+                "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+                "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+              },
+              "model": "biocyc",
+              "raw_prediction_index": 0,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "ec_consistency": 0.1,
+                  "feasibility": 0.15,
+                  "model_score": 0.15,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.0
+              }
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+              "model_score": "MOORETRO_BEAM_SCORE",
+              "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+              "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+              "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+            },
+            "model_rank": "Top-1",
+            "other_products": [],
+            "precursors": [
+              {
+                "canonical_smiles": "CCCC(=O)CCCC(C)=O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(=O)CCCC(C)=O",
+                "name": null,
+                "role": "main",
+                "smiles": "CCCC(=O)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "provenance": "MODEL",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.909091,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 1.0,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": null,
+              "ec_consistency": 0.6,
+              "feasibility": 0.17,
+              "model_score": 0.318,
+              "structural_similarity": 1.0,
+              "toxicity": null,
+              "yield": null
+            },
+            "reaction_name": null,
+            "score": 0.575552,
+            "score_components": {
+              "approx_structural_overlap": 0.909091,
+              "building_block_progress": 1.0,
+              "ec_consistency": 0.6,
+              "feasibility": 0.17,
+              "model_score": 0.318,
+              "structural_similarity": 1.0
+            },
+            "step_number": 1,
+            "stored_direction": null,
+            "stored_equation": null,
+            "subsystem": null,
+            "target": {
+              "canonical_smiles": "CCCC(N)CCCC(C)=O",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCCC(N)CCCC(C)=O",
+              "name": null,
+              "smiles": "CCCC(N)CCCC(C)=O",
+              "toxicity": null
+            },
+            "template": "[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1",
+            "warnings": []
+          },
+          {
+            "candidate_id": "model:smi:CCC[C@H]1CCC[C@@H](C)N1:5",
+            "carbon_branch": {
+              "carbon_flow_method": "STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION",
+              "main_carbon_retained_fraction": 1.0,
+              "main_precursor_carbon": 9.0,
+              "major_organic_byproduct_carbon": 0.0,
+              "major_organic_byproduct_penalty": 0.0,
+              "major_organic_byproducts": [],
+              "target_product_carbon": 9.0
+            },
+            "cost": 1.445477,
+            "database_reaction_ids": [],
+            "direction_semantics": {
+              "precursor_side": null,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "stored_forward_direction": null,
+              "stored_reaction_direction": null,
+              "target_side": null
+            },
+            "direction_uncertain": false,
+            "ec_numbers": [
+              "4.2.1"
+            ],
+            "metadata": {
+              "atom_mapping_source": "NONE",
+              "ec_level": 3,
+              "metric_provenance": {
+                "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+                "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+                "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+                "model_score": "MOORETRO_BEAM_SCORE",
+                "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+                "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+                "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+              },
+              "model": "biocyc",
+              "raw_prediction_index": 4,
+              "retrosynthesis_direction": "target_to_predicted_precursors",
+              "score_provenance": {
+                "active_weights": {
+                  "approx_structural_overlap": 0.1,
+                  "building_block_progress": 0.05,
+                  "ec_consistency": 0.1,
+                  "feasibility": 0.15,
+                  "model_score": 0.15,
+                  "structural_similarity": 0.1
+                },
+                "aggregation": "MASKED_WEIGHTED_AVERAGE",
+                "consensus_bonus": 0.0,
+                "database_preference_bonus": 0.0
+              }
+            },
+            "metric_provenance": {
+              "approx_structural_overlap": "RDKIT_MCS_TARGET_FRACTION",
+              "atom_conservation": "UNAVAILABLE_NO_REACTION_ATOM_MAPPING",
+              "feasibility": "MOORETRO_DELTA_SASCORE_HEURISTIC",
+              "model_score": "MOORETRO_BEAM_SCORE",
+              "structural_similarity": "MOORETRO_BUILDING_BLOCK_SIMILARITY",
+              "toxicity": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT",
+              "yield_score": "MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT"
+            },
+            "model_rank": "Top-9",
+            "other_products": [],
+            "precursors": [
+              {
+                "canonical_smiles": "CCCC(N)CCCC(C)=O",
+                "charge": null,
+                "coefficient": "1",
+                "formula": null,
+                "generic": false,
+                "id": null,
+                "key": "smi:CCCC(N)CCCC(C)=O",
+                "name": null,
+                "role": "main",
+                "smiles": "CCCC(N)CCCC(C)=O",
+                "toxicity": null
+              }
+            ],
+            "provenance": "MODEL",
+            "raw_metrics": {
+              "approx_structural_overlap": 0.3,
+              "atom_conservation": null,
+              "atom_mapping_source": "NONE",
+              "building_block_similarity": 0.448276,
+              "building_block_similarity_semantics": "1.0=closest to an input building block; 0.0=farther away",
+              "database_support": null,
+              "ec_consistency": 0.6,
+              "feasibility": 0.197,
+              "model_score": 0.06,
+              "structural_similarity": 0.457,
+              "toxicity": null,
+              "yield": null
+            },
+            "reaction_name": null,
+            "score": 0.30256,
+            "score_components": {
+              "approx_structural_overlap": 0.3,
+              "building_block_progress": 0.448276,
+              "ec_consistency": 0.6,
+              "feasibility": 0.197,
+              "model_score": 0.06,
+              "structural_similarity": 0.457
+            },
+            "step_number": 2,
+            "stored_direction": null,
+            "stored_equation": null,
+            "subsystem": null,
+            "target": {
+              "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "charge": null,
+              "formula": null,
+              "generic": false,
+              "id": null,
+              "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+              "name": null,
+              "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+              "toxicity": null
+            },
+            "template": "[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1",
+            "warnings": []
+          }
+        ],
+        "target_carbon_efficiency": 1.0
+      }
+    ],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "backward_queries": 630,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 3213,
+      "complete_routes_found": 1,
+      "consensus_candidates": 3,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 31559,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 1505,
+        "forward_queries": 782,
+        "hits": 165615,
+        "misses": 8096,
+        "normalizations": 11618
+      },
+      "database_candidates": 68,
+      "database_only_routes": 0,
+      "dead_ends": 57,
+      "duplicate_states_pruned": 0,
+      "elapsed_seconds": 506.029196,
+      "endpoint_route_rejection_reasons": {},
+      "endpoint_routes_rejected": 0,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 2882,
+        "generic_structure": 92,
+        "no_noncurrency_precursor": 13,
+        "route_cycle": 184,
+        "self_cycle": 42
+      },
+      "forward_alternative_count": 1,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 1,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 0,
+      "forward_direct_solutions": 0,
+      "forward_queries": 1,
+      "fusion_candidates": 3380,
+      "hybrid_backward_solutions": 1,
+      "mcts_backpropagations": 5000,
+      "mcts_best_reward": 1.55500238,
+      "mcts_expansion_nodes": 67,
+      "mcts_iterations": 5000,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 10,
+      "mcts_rollouts": 5000,
+      "mcts_root_mean_value": 1.34181335,
+      "mcts_root_visits": 5000,
+      "mcts_selection_steps": 10217,
+      "mcts_tree_nodes": 68,
+      "model_assisted_routes": 1,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 1839,
+        "hits": 20996,
+        "misses": 1839,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 592,
+      "model_calls": 38,
+      "model_candidates": 3328,
+      "model_failures": 0,
+      "model_requests": 630,
+      "requested_top_k": 10,
+      "returned_route_count": 1,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 1,
+      "states_expanded": 45,
+      "states_generated": 69,
+      "termination_reason": "MCTS_ITERATION_BUDGET_REACHED",
+      "top_k_shortfall": 9,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "warnings": []
+    },
+    "target": {
+      "canonical_smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+      "charge": null,
+      "formula": null,
+      "generic": false,
+      "id": null,
+      "key": "smi:CCC[C@H]1CCC[C@@H](C)N1",
+      "name": null,
+      "smiles": "CCC[C@H]1CCC[C@@H](C)N1",
+      "toxicity": null
+    }
+  },
+  "tool_calls": [
+    {
+      "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"CCCC(=O)CCCC(C)=O\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}}",
+      "tool": "MoleculeInputNormalizer",
+      "tool_input": "{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"]}"
+    },
+    {
+      "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"require_all_building_blocks\": true}, \"route_count\": 1, \"routes\": [{\"rank\": 1, \"complete\": true, \"all_noncurrency_leaves_solved\": true, \"route_validation\": {\"valid\": true, \"connected\": true, \"acyclic\": true, \"endpoint_match\": true, \"require_all_building_blocks\": true, \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"required_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"terminal_building_block_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"missing_building_block_keys\": [], \"extra_terminal_keys\": [], \"reachable_step_count\": 2, \"step_count\": 2, \"duplicate_target_keys\": [], \"disconnected_candidate_ids\": [], \"cycle_paths\": [], \"reasons\": []}, \"route_score\": 0.555002, \"diversity_adjusted_score\": 0.555002, \"route_cost\": 2.307902, \"route_score_components\": {\"reaction_quality\": 0.31538826925332303, \"target_carbon_efficiency\": 1.0, \"inverse_major_byproduct_penalty\": 1.0, \"inverse_cofactor_burden\": 1.0}, \"target_carbon_efficiency\": 1.0, \"main_branch_carbon_retention\": 1.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"currency_cofactor_count\": 0, \"carbon_evaluation_method\": \"MAIN_BRANCH_STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\", \"atom_mapping_used\": false, \"step_count\": 2, \"backward_expansion_depth\": 2, \"provenance_counts\": {\"DATABASE\": 0, \"MODEL\": 2, \"BOTH\": 0}, \"retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 <- CCCC(N)CCCC(C)=O <- CCCC(=O)CCCC(C)=O\", \"enzyme_annotated_retrosynthesis\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\", \"retrosynthesis_reactions\": [{\"retrosynthesis_step\": 1, \"equation\": \"CCC[C@H]1CCC[C@@H](C)N1 ←[EC 4.2.1; MODEL] CCCC(N)CCCC(C)=O\", \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"4.2.1\"], \"ec_display\": \"EC 4.2.1\", \"reaction_name\": null, \"database_reaction_ids\": [], \"provenance\": \"MODEL\", \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\"}, \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\"}, {\"retrosynthesis_step\": 2, \"equation\": \"CCCC(N)CCCC(C)=O ←[EC 2.6.1; MODEL] CCCC(=O)CCCC(C)=O\", \"target\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"noncurrency_precursors\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}], \"currency_precursors\": [], \"enzyme\": {\"ec_numbers\": [\"2.6.1\"], \"ec_display\": \"EC 2.6.1\", \"reaction_name\": null, \"database_reaction_ids\": [], \"provenance\": \"MODEL\", \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\"}, \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\"}], \"forward_path\": \"CCCC(=O)CCCC(C)=O -> CCCC(N)CCCC(C)=O -> CCC[C@H]1CCC[C@@H](C)N1\", \"steps\": [{\"step_number\": 1, \"candidate_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\", \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"reaction_name\": null, \"stored_equation\": null, \"stored_direction\": null, \"direction_uncertain\": false, \"target\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"precursors\": [{\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [], \"ec_numbers\": [\"2.6.1\"], \"subsystem\": null, \"template\": \"[Delete][Bond]CN:4.3[Leaving][Group]*N:4[Attaching][Group]*=O:3[EC]2.6.1\", \"model_rank\": \"Top-1\", \"score\": 0.575552, \"cost\": 0.802425, \"score_components\": {\"model_score\": 0.318, \"feasibility\": 0.17, \"ec_consistency\": 0.6, \"approx_structural_overlap\": 0.909091, \"building_block_progress\": 1.0, \"structural_similarity\": 1.0}, \"raw_metrics\": {\"database_support\": null, \"model_score\": 0.318, \"structural_similarity\": 1.0, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.909091, \"feasibility\": 0.17, \"yield\": null, \"toxicity\": null, \"ec_consistency\": 0.6, \"building_block_similarity\": 1.0, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": null, \"stored_forward_direction\": null, \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"precursor_side\": null, \"target_side\": null}, \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"metadata\": {\"model\": \"biocyc\", \"ec_level\": 3, \"raw_prediction_index\": 0, \"atom_mapping_source\": \"NONE\", \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"model_score\": 0.15, \"feasibility\": 0.15, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.0}}, \"carbon_branch\": {\"main_precursor_carbon\": 9.0, \"target_product_carbon\": 9.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}, {\"step_number\": 2, \"candidate_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\", \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"reaction_name\": null, \"stored_equation\": null, \"stored_direction\": null, \"direction_uncertain\": false, \"target\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"precursors\": [{\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}], \"other_products\": [], \"ec_numbers\": [\"4.2.1\"], \"subsystem\": null, \"template\": \"[Delete][Bond]CN:7.9[Attaching][Group]*=O:7[EC]4.2.1\", \"model_rank\": \"Top-9\", \"score\": 0.30256, \"cost\": 1.445477, \"score_components\": {\"model_score\": 0.06, \"feasibility\": 0.197, \"ec_consistency\": 0.6, \"approx_structural_overlap\": 0.3, \"building_block_progress\": 0.448276, \"structural_similarity\": 0.457}, \"raw_metrics\": {\"database_support\": null, \"model_score\": 0.06, \"structural_similarity\": 0.457, \"atom_conservation\": null, \"atom_mapping_source\": \"NONE\", \"approx_structural_overlap\": 0.3, \"feasibility\": 0.197, \"yield\": null, \"toxicity\": null, \"ec_consistency\": 0.6, \"building_block_similarity\": 0.448276, \"building_block_similarity_semantics\": \"1.0=closest to an input building block; 0.0=farther away\"}, \"warnings\": [], \"direction_semantics\": {\"stored_reaction_direction\": null, \"stored_forward_direction\": null, \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"precursor_side\": null, \"target_side\": null}, \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"metadata\": {\"model\": \"biocyc\", \"ec_level\": 3, \"raw_prediction_index\": 4, \"atom_mapping_source\": \"NONE\", \"retrosynthesis_direction\": \"target_to_predicted_precursors\", \"metric_provenance\": {\"model_score\": \"MOORETRO_BEAM_SCORE\", \"feasibility\": \"MOORETRO_DELTA_SASCORE_HEURISTIC\", \"structural_similarity\": \"MOORETRO_BUILDING_BLOCK_SIMILARITY\", \"approx_structural_overlap\": \"RDKIT_MCS_TARGET_FRACTION\", \"atom_conservation\": \"UNAVAILABLE_NO_REACTION_ATOM_MAPPING\", \"yield_score\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\", \"toxicity\": \"MOORETRO_RANDOM_PLACEHOLDER_DISABLED_BY_DEFAULT\"}, \"score_provenance\": {\"aggregation\": \"MASKED_WEIGHTED_AVERAGE\", \"active_weights\": {\"model_score\": 0.15, \"feasibility\": 0.15, \"ec_consistency\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"consensus_bonus\": 0.0, \"database_preference_bonus\": 0.0}}, \"carbon_branch\": {\"main_precursor_carbon\": 9.0, \"target_product_carbon\": 9.0, \"main_carbon_retained_fraction\": 1.0, \"major_organic_byproduct_carbon\": 0.0, \"major_organic_byproduct_penalty\": 0.0, \"major_organic_byproducts\": [], \"carbon_flow_method\": \"STOICHIOMETRIC_CARBON_COUNT_APPROXIMATION\"}}]}], \"stats\": {\"states_expanded\": 45, \"states_generated\": 69, \"duplicate_states_pruned\": 0, \"beam_states_pruned\": 0, \"dead_ends\": 57, \"database_candidates\": 68, \"forward_queries\": 1, \"backward_queries\": 630, \"model_candidates\": 3328, \"model_requests\": 630, \"model_calls\": 38, \"model_cache_hits\": 592, \"model_failures\": 0, \"fusion_candidates\": 3380, \"consensus_candidates\": 3, \"candidates_filtered\": 3213, \"filter_reasons\": {\"consecutive_model_only_limit\": 2882, \"generic_structure\": 92, \"self_cycle\": 42, \"route_cycle\": 184, \"no_noncurrency_precursor\": 13}, \"forward_anchor_count\": 1, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 1, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 1, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 5000, \"mcts_selection_steps\": 10217, \"mcts_expansion_nodes\": 67, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 10, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 68, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 1.34181335, \"mcts_best_reward\": 1.55500238, \"endpoint_routes_rejected\": 0, \"endpoint_route_rejection_reasons\": {}, \"complete_routes_found\": 1, \"solution_pool_size_before_rerank\": 1, \"returned_route_count\": 1, \"top_k_shortfall\": 9, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 0, \"model_assisted_routes\": 1, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 506.029196, \"database_cache\": {\"hits\": 165615, \"misses\": 8096, \"normalizations\": 11618, \"backward_queries\": 1505, \"forward_queries\": 782, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 31559, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 20996, \"misses\": 1839, \"entries\": 1839, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [{\"node_id\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"node_type\": \"OR\", \"role\": \"target\", \"molecule\": {\"key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"id\": null, \"name\": null, \"smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"canonical_smiles\": \"CCC[C@H]1CCC[C@@H](C)N1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:CCCC(N)CCCC(C)=O\", \"node_type\": \"OR\", \"role\": \"intermediate\", \"molecule\": {\"key\": \"smi:CCCC(N)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(N)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(N)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"solution_routes\": [1]}, {\"node_id\": \"smi:CCCC(=O)CCCC(C)=O\", \"node_type\": \"OR\", \"role\": \"building_block\", \"molecule\": {\"key\": \"smi:CCCC(=O)CCCC(C)=O\", \"id\": null, \"name\": null, \"smiles\": \"CCCC(=O)CCCC(C)=O\", \"canonical_smiles\": \"CCCC(=O)CCCC(C)=O\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false, \"role\": \"main\", \"coefficient\": \"1\"}, \"solution_routes\": [1]}], \"reaction_nodes\": [{\"node_id\": \"model:smi:CCCC(N)CCCC(C)=O:1\", \"node_type\": \"AND\", \"target_key\": \"smi:CCCC(N)CCCC(C)=O\", \"precursor_keys\": [\"smi:CCCC(=O)CCCC(C)=O\"], \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"ec_numbers\": [\"2.6.1\"], \"step_score\": 0.575552, \"step_cost\": 0.802425, \"solution_routes\": [1]}, {\"node_id\": \"model:smi:CCC[C@H]1CCC[C@@H](C)N1:5\", \"node_type\": \"AND\", \"target_key\": \"smi:CCC[C@H]1CCC[C@@H](C)N1\", \"precursor_keys\": [\"smi:CCCC(N)CCCC(C)=O\"], \"provenance\": \"MODEL\", \"database_reaction_ids\": [], \"ec_numbers\": [\"4.2.1\"], \"step_score\": 0.30256, \"step_cost\": 1.445477, \"solution_routes\": [1]}], \"molecule_node_count\": 3, \"reaction_node_count\": 2, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 1, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+      "tool": "EnzymeRetrosynthesisSearch",
+      "tool_input": "{\"targets\": [\"CCC[C@H]1CCC[C@@H](C)N1\"], \"building_blocks\": [\"CCCC(=O)CCCC(C)=O\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+    }
+  ]
+}

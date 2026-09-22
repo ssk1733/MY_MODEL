@@ -1,0 +1,404 @@
+{
+  "case_count": 52,
+  "enzyme_class_rules": {
+    "AAD": {
+      "aliases": [
+        "AAD",
+        "amino acid deaminase"
+      ],
+      "ec_prefixes": [
+        "1.4.3"
+      ]
+    },
+    "AADH": {
+      "aliases": [
+        "AADH",
+        "amino acid dehydrogenase"
+      ],
+      "ec_prefixes": [
+        "1.4.1"
+      ]
+    },
+    "ADH": {
+      "aliases": [
+        "ADH",
+        "alcohol dehydrogenase"
+      ],
+      "ec_prefixes": [
+        "1.1.1"
+      ]
+    },
+    "AlDH": {
+      "aliases": [
+        "AlDH",
+        "aldehyde dehydrogenase"
+      ],
+      "ec_prefixes": [
+        "1.2.1"
+      ]
+    },
+    "AlOx": {
+      "aliases": [
+        "AlOx",
+        "alcohol oxidase"
+      ],
+      "ec_prefixes": [
+        "1.1.3"
+      ]
+    },
+    "Aldolase": {
+      "aliases": [
+        "Aldolase"
+      ],
+      "ec_prefixes": [
+        "4.1.2"
+      ]
+    },
+    "AmDH": {
+      "aliases": [
+        "AmDH",
+        "amine dehydrogenase"
+      ],
+      "ec_prefixes": [
+        "1.4.1"
+      ]
+    },
+    "AmOx": {
+      "aliases": [
+        "AmOx",
+        "amine oxidase"
+      ],
+      "ec_prefixes": [
+        "1.4.3"
+      ]
+    },
+    "BVMO": {
+      "aliases": [
+        "BVMO",
+        "Baeyer Villiger monooxygenase"
+      ],
+      "ec_prefixes": [
+        "1.14.13",
+        "1.14.14"
+      ]
+    },
+    "CAR": {
+      "aliases": [
+        "CAR",
+        "carboxylic acid reductase"
+      ],
+      "ec_prefixes": [
+        "1.2.1.30"
+      ]
+    },
+    "CMT": {
+      "aliases": [
+        "CMT",
+        "carbon methyltransferase",
+        "C methyltransferase"
+      ],
+      "ec_prefixes": [
+        "2.1.1"
+      ]
+    },
+    "DC": {
+      "aliases": [
+        "DC",
+        "decarboxylase"
+      ],
+      "ec_prefixes": [
+        "4.1.1"
+      ]
+    },
+    "DERA Aldolase": {
+      "aliases": [
+        "DERA",
+        "DERA Aldolase",
+        "deoxyribose phosphate aldolase"
+      ],
+      "ec_prefixes": [
+        "4.1.2.4"
+      ]
+    },
+    "EH": {
+      "aliases": [
+        "EH",
+        "epoxide hydrolase"
+      ],
+      "ec_prefixes": [
+        "3.3.2"
+      ]
+    },
+    "ERED": {
+      "aliases": [
+        "ERED",
+        "ene reductase",
+        "ene-reductase"
+      ],
+      "ec_prefixes": [
+        "1.3.1",
+        "1.6.99"
+      ]
+    },
+    "Hydratase": {
+      "aliases": [
+        "Hydratase"
+      ],
+      "ec_prefixes": [
+        "4.2.1"
+      ]
+    },
+    "IRED": {
+      "aliases": [
+        "IRED",
+        "imine reductase"
+      ],
+      "ec_prefixes": [
+        "1.5.1"
+      ]
+    },
+    "Kinase": {
+      "aliases": [
+        "Kinase"
+      ],
+      "ec_prefixes": [
+        "2.7"
+      ]
+    },
+    "Lipase": {
+      "aliases": [
+        "Lipase"
+      ],
+      "ec_prefixes": [
+        "3.1.1.3"
+      ]
+    },
+    "NIT": {
+      "aliases": [
+        "NIT",
+        "nitrilase"
+      ],
+      "ec_prefixes": [
+        "3.5.5"
+      ]
+    },
+    "P450": {
+      "aliases": [
+        "P450",
+        "cytochrome P450"
+      ],
+      "ec_prefixes": [
+        "1.14"
+      ]
+    },
+    "PAL": {
+      "aliases": [
+        "PAL",
+        "phenylalanine ammonia lyase"
+      ],
+      "ec_prefixes": [
+        "4.3.1.24",
+        "4.3.1.25"
+      ]
+    },
+    "PNP": {
+      "aliases": [
+        "PNP",
+        "purine nucleoside phosphorylase"
+      ],
+      "ec_prefixes": [
+        "2.4.2.1"
+      ]
+    },
+    "PPM": {
+      "aliases": [
+        "PPM",
+        "phosphopentomutase"
+      ],
+      "ec_prefixes": [
+        "5.4.2.7"
+      ]
+    },
+    "PSase": {
+      "aliases": [
+        "PSase",
+        "Pictet Spenglerase",
+        "Pictet-Spenglerase"
+      ],
+      "ec_prefixes": []
+    },
+    "SMO": {
+      "aliases": [
+        "SMO",
+        "styrene monooxygenase"
+      ],
+      "ec_prefixes": [
+        "1.14.14.11"
+      ]
+    },
+    "TA": {
+      "aliases": [
+        "TA",
+        "transaminase",
+        "aminotransferase"
+      ],
+      "ec_prefixes": [
+        "2.6.1"
+      ]
+    },
+    "TAL": {
+      "aliases": [
+        "TAL",
+        "tyrosine ammonia lyase"
+      ],
+      "ec_prefixes": [
+        "4.3.1.23"
+      ]
+    },
+    "TAM": {
+      "aliases": [
+        "TAM",
+        "tyrosine aminomutase"
+      ],
+      "ec_prefixes": [
+        "5.4.3"
+      ]
+    },
+    "TDL": {
+      "aliases": [
+        "TDL",
+        "ThDL",
+        "thiamine dependent lyase",
+        "thiamine-dependent lyase"
+      ],
+      "ec_prefixes": []
+    },
+    "TPL": {
+      "aliases": [
+        "TPL",
+        "tyrosine phenol lyase"
+      ],
+      "ec_prefixes": [
+        "4.1.99.2"
+      ]
+    },
+    "Threonine Aldolase": {
+      "aliases": [
+        "Threonine Aldolase"
+      ],
+      "ec_prefixes": [
+        "4.1.2.5",
+        "4.1.2.48"
+      ]
+    },
+    "TrpS": {
+      "aliases": [
+        "TrpS",
+        "tryptophan synthase"
+      ],
+      "ec_prefixes": [
+        "4.2.1.20"
+      ]
+    },
+    "XOR": {
+      "aliases": [
+        "XOR",
+        "xanthine oxidoreductase"
+      ],
+      "ec_prefixes": [
+        "1.17.1.4",
+        "1.17.3.2"
+      ]
+    }
+  },
+  "files": {
+    "benchmark_jsonl": "benchmark.jsonl"
+  },
+  "ground_truth_scope": {
+    "agent_input": [
+      "target canonical SMILES",
+      "literature starting-material canonical SMILES set"
+    ],
+    "evaluation_only": [
+      "source-listed enzyme classes",
+      "literature DOI"
+    ],
+    "unavailable": [
+      "intermediate structures",
+      "reaction atom mappings",
+      "step-level EC numbers",
+      "reaction conditions"
+    ]
+  },
+  "metric_protocol": {
+    "agent_input": "target SMILES plus all substrate SMILES",
+    "aggregate_complete_pathways": "report X/N and X/N*100 percent for a complete endpoint-correct route found anywhere in all retained predictions",
+    "aggregate_enzyme_complete_pathways": "report X/N and X/N*100 percent where the same endpoint-correct complete route contains every source-listed enzyme class",
+    "case_execution_order": "benchmark_id ascending (RBC52-001 through RBC52-052)",
+    "complete_route_found": "a non-empty complete route must connect the target to exactly all supplied non-currency substrate leaves; missing or extra leaves fail",
+    "enzyme_all_present": "the same complete endpoint-correct route must contain every gold enzyme class; order is ignored and repeated classes require distinct predicted reaction steps",
+    "enzyme_matching": "conservative reaction-name/template aliases plus documented EC prefix rules; these are proxy class annotations, not gold EC labels",
+    "enzyme_top_k_reporting": "report enzyme hit count X/N and accuracy at Top 1, Top 3, and Top 10",
+    "intermediate_and_step_count_scoring": "not otherwise evaluated",
+    "top_k": "a case is correct at K when its first matching route rank <= K"
+  },
+  "name": "RetroBioCat 52-pathway test set adapted for ChemCrow",
+  "schema_version": "retrobiocat52.agent_target_substrates.v5",
+  "source": {
+    "file_name": "RetroBioCat 52-pathway test set.xlsx",
+    "publication": "https://doi.org/10.1038/s41929-020-00556-z",
+    "sha256": "03806a67d0976395c20f38519fcf4b98fe3afa2abdea80d771d92438b54cf4c2",
+    "sheet": "first worksheet",
+    "upstream_evaluator": "https://github.com/willfinnigan/RetroBioCat/blob/master/scripts/pathway_testing/pathway_eval.py"
+  },
+  "statistics": {
+    "enzyme_class_counts": {
+      "AAD": 4,
+      "AADH": 1,
+      "ADH": 17,
+      "AlDH": 1,
+      "AlOx": 7,
+      "Aldolase": 2,
+      "AmDH": 3,
+      "AmOx": 1,
+      "BVMO": 3,
+      "CAR": 6,
+      "CMT": 1,
+      "DC": 3,
+      "DERA Aldolase": 1,
+      "EH": 4,
+      "ERED": 4,
+      "Hydratase": 1,
+      "IRED": 8,
+      "Kinase": 1,
+      "Lipase": 1,
+      "NIT": 1,
+      "P450": 3,
+      "PAL": 3,
+      "PNP": 1,
+      "PPM": 1,
+      "PSase": 1,
+      "SMO": 3,
+      "TA": 24,
+      "TAL": 1,
+      "TAM": 1,
+      "TDL": 5,
+      "TPL": 4,
+      "Threonine Aldolase": 1,
+      "TrpS": 1,
+      "XOR": 1
+    },
+    "step_count_distribution": {
+      "1": 1,
+      "2": 37,
+      "3": 11,
+      "4": 3
+    },
+    "substrate_count_distribution": {
+      "1": 34,
+      "2": 17,
+      "3": 1
+    },
+    "unique_target_count": 49
+  }
+}

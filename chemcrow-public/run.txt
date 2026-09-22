@@ -1,0 +1,220 @@
+
+1. 清除代理:
+依次执行：
+
+unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
+unset http_proxy https_proxy all_proxy
+
+检查是否仍有代理环境变量，只显示变量名、不暴露内容：
+
+env | cut -d= -f1 | grep -i proxy
+
+
+
+2. 创建deep seek API:
+先到 DeepSeek 开放平台创建密钥，然后执行：
+
+unset OPENAI_API_KEY
+unset OPENAI_API_BASE
+
+read -s -p "请输入 DeepSeek API Key: " DEEPSEEK_API_KEY
+export DEEPSEEK_API_KEY
+echo
+
+验证：
+
+python -c "import os; print('DeepSeek Key已配置:', bool(os.getenv('DEEPSEEK_API_KEY')))"
+
+
+deepseek
+sk-a79e2b444c3b44c29174f24a66181e18
+
+3. 执行命令:
+
+python - <<'PY'
+import os
+from chemcrow.agents import ChemCrow
+
+agent = ChemCrow(
+    model="deepseek-v4-flash",
+    tools_model="deepseek-v4-flash",
+    openai_api_key=os.environ["DEEPSEEK_API_KEY"],
+    api_base="https://api.deepseek.com",
+    temp=0.0,
+    streaming=False,
+    max_iterations=12,
+    verbose=True,
+)
+
+result = agent.run(
+    "Calculate the molecular weight of acetaminophen. "
+    "Use the appropriate chemistry tool once. "
+    "After obtaining the result, immediately respond using exactly "
+    "'Final Answer: ...'."
+)
+
+print("\n========== 最终结果 ==========")
+print(result)
+PY
+
+
+
+
+
+
+
+python - <<'PY'
+import json
+import time
+from chemcrow.tools import EnzymeRetrosynthesisSearch
+
+tool = EnzymeRetrosynthesisSearch(
+    config={
+        "use_database": True,
+        "use_model": True,
+        "max_depth": 3,
+        "max_expansions": 50,
+        "forward_anchor_max_nodes": 200,
+        "max_model_calls": 1,
+    }
+)
+
+payload = {
+    "target": "CCO",
+    "building_blocks": [
+        "OC1OC[C@H](O)[C@H](O)[C@H]1O"
+    ],
+    "top_k": 5,
+    "search_algorithm": "best_first_beam",
+}
+
+print("开始搜索……", flush=True)
+started = time.time()
+
+result = tool.run(json.dumps(payload))
+
+print(f"搜索结束，耗时 {time.time() - started:.1f} 秒", flush=True)
+
+# 工具返回的是 JSON 字符串
+data = json.loads(result)
+print(json.dumps(data, ensure_ascii=False, indent=2))
+PY
+
+
+
+
+
+
+
+
+
+
+
+
+python - <<'PY'
+import json
+from chemcrow.tools import EnzymeRetrosynthesisSearch
+
+tool = EnzymeRetrosynthesisSearch(
+    config={
+        "use_database": True,
+        "use_model": True,
+        "max_depth": 10,
+        "max_expansions": 500,
+        "mcts_exploration_constant": 1.4,
+        "mcts_rollout_depth": 3,
+        "mcts_random_seed": 100,
+        "mcts_progressive_widening": True,
+    }
+)
+
+result = tool.run(json.dumps({
+    "target": "CCO",
+    "building_blocks": [
+        "OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O"
+    ],
+    "top_k": 5,
+    "search_algorithm": "and_or_mcts"
+}))
+
+print(result)
+PY
+
+
+
+
+
+
+python - <<'PY'
+import os
+from chemcrow.agents import ChemCrow
+
+TARGET = "CCO"
+SUBSTRATE = "OC1OC[C@H](O)[C@H](O)[C@H]1O"
+
+agent = ChemCrow(
+    model="deepseek-flash",
+    tools_model="deepseek-flash",
+    openai_api_key=os.environ["DEEPSEEK_API_KEY"],
+    api_base="https://api.deepseek.com",
+    temp=0.0,
+    streaming=False,
+    max_iterations=40,
+)
+
+print("模型：", agent.llm.model_name)
+print("API地址：", agent.llm.openai_api_base)
+
+question = f"""
+目标物：{TARGET}
+可用底物：{SUBSTRATE}
+
+不必调用安全检查工具。
+
+请先规范化目标物和底物，然后使用 EnzymeRetrosynthesisSearch，
+通过 AND-OR MCTS 搜索从给定底物到目标物的完整酶催化逆合成路径。
+
+输出 Top 5 路线，格式为：
+目标物 ←[EC编号；反应名称；反应ID；来源] 中间体 ←[...] 底物。
+
+如果反应包含多个必要底物，请同时列出完整的 AND 反应方程。
+如果没有找到完整路线，请明确报告搜索终止原因和已扩展节点数。
+"""
+
+result = agent.run(question)
+print("\n最终结果：")
+print(result)
+PY
+
+
+
+
+
+
+
+
+
+测试：
+
+cd /root/autodl-tmp/my_model/chemcrow-public
+
+export DEEPSEEK_API_KEY='sk-a79e2b444c3b44c29174f24a66181e18'
+export DEEPSEEK_API_BASE='https://api.deepseek.com/v1'
+
+python scripts/evaluate_retrobio_cat52.py \
+  --model deepseek-chat \
+  --top-k 10 \
+  --report-top-k 1,3,10 \
+  --max-depth 4 \
+  --max-agent-iterations 80 \
+  --output-dir benchmark_results/retrobiocat52_agent_v5 \
+  --overwrite
+
+
+
+python scripts/run_agent_retrosynthesis.py \
+  --target 'C[C@@H](N)[C@H](O)c1ccccc1' \
+  --building-block 'O=Cc1ccccc1' \
+  --building-block 'CC(=O)C(=O)O' \
+  --endpoint-mode exact_set \
+  --top-k 10

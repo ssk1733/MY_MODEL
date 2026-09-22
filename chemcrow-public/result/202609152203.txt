@@ -1,0 +1,32 @@
+================================================================================
+ChemCrow run ID: 72f54199-a10b-43cb-a55a-125b5e26f99c
+Started: 2026-09-15T22:03:41
+Finished: 2026-09-15T22:03:49
+
+========== User input ==========
+Calculate the molecular weight of acetaminophen. Use the appropriate chemistry tool once. After obtaining the result, immediately respond using exactly 'Final Answer: ...'.
+
+========== Intermediate steps ==========
+
+--- Step 1 ---
+Tool: MoleculeInputNormalizer
+Action input:
+acetaminophen
+LLM action log:
+Action: MoleculeInputNormalizer
+Action Input: acetaminophen
+Observation:
+{"ok": true, "normalization": "RDKIT_CANONICAL_ISOMERIC_SMILES", "normalized_molecules": [{"role": "molecule", "original_input": "acetaminophen", "matched_by": "local_exact_name", "database_id": "C06804", "name": "Acetaminophen", "canonical_smiles": "CC(=O)Nc1ccc(O)cc1", "key": "smi:CC(=O)Nc1ccc(O)cc1", "formula": "C8H9NO2", "charge": null, "valid": true}], "errors": [], "canonical_smiles": "CC(=O)Nc1ccc(O)cc1"}
+
+--- Step 2 ---
+Tool: SMILES2Weight
+Action input:
+CC(=O)Nc1ccc(O)cc1
+LLM action log:
+Action: SMILES2Weight
+Action Input: CC(=O)Nc1ccc(O)cc1
+Observation:
+151.063328528
+
+========== Final answer ==========
+The molecular weight of acetaminophen (canonical SMILES: CC(=O)Nc1ccc(O)cc1) is 151.063328528 g/mol.

@@ -1,0 +1,1 @@
+{"benchmark_id": "RBC52-001", "input": {"substrate_smiles": ["CC(=O)C(=O)O", "O=Cc1ccccc1"], "target_smiles": "C[C@@H](N)[C@H](O)c1ccccc1"}, "route_count": 0, "routes": []}

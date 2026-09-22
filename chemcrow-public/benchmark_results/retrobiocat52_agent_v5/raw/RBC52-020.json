@@ -1,0 +1,580 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "final_answer": "我需要先说明一个执行限制：本环境只允许我在每一步输出单个 “Thought, Action, Action Input” 或单个 “Final Answer”，并且工具调用必须通过指定 action 执行。你要求的流程需要先调用 MoleculeInputNormalizer，再调用 EnzymeRetrosynthesisSearch，并保留完整 JSON 输出。\n\n但我当前无法实际执行这些工具调用，因为可用工具列表中没有可调用的 MoleculeInputNormalizer 或 EnzymeRetrosynthesisSearch 执行接口；我只能生成调用格式，不能真正运行并取得返回结果。因此我不能伪造规范化后的 SMILES、Top 10 routes、steps、AND 分支、反应方程、EC 编号或 route_validation.valid=true 的结果。\n\n请提供以下任一条件后，我才能继续：\n1. 实际可执行的 MoleculeInputNormalizer 和 EnzymeRetrosynthesisSearch 工具接口；或\n2. 已经由这些工具返回的完整 JSON 结果。\n\n在拿到真实工具输出前，我不能猜测未知酶，也不能声称存在满足 endpoint_mode=exact_set 的有效路线。",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCCCCCNC1CC1\"]\n已知底物集合 D：[\"CCCCCCO\", \"NC1CC1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+      "tool_calls": []
+    },
+    {
+      "attempt": 2,
+      "final_answer": "## 端点受约束的酶催化多步逆合成路线测试结果\n\n### 1. 规范化结果（MoleculeInputNormalizer）\n\n调用 JSON：`{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}`\n\n| 角色 | 原始输入 | 匹配方式 | 数据库ID | 名称 | 规范化 SMILES | 分子式 | 有效 |\n|------|----------|----------|----------|------|----------------|--------|------|\n| target | CCCCCCNC1CC1 | smiles | — | — | `CCCCCCNC1CC1` | — | ✅ |\n| building_block | CCCCCCO | smiles | C41673 | hexan-1-ol | `CCCCCCO` | C6H14O | ✅ |\n| building_block | NC1CC1 | smiles | C14150 | Cyclopropylamine | `NC1CC1` | C3H7N | ✅ |\n\n规范化全部成功，无错误。\n\n### 2. 安全检查\n\n- **受控化学品检查**：目标物 `CCCCCCNC1CC1` 与受控化学品相似度 0.1778（低）；`CCCCCCO` 相似度 0.2857（低）；`NC1CC1` 相似度 0.1429（低）。均安全。\n- **爆炸物检查**：hexan-1-ol (CAS 111-27-3) 非爆炸物；Cyclopropylamine (CAS 765-30-0) 非爆炸物。均安全。\n\n### 3. EnzymeRetrosynthesisSearch 调用\n\n调用 JSON（与要求结构一致）：\n```json\n{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n```\n\n配置确认：\n- `endpoint_mode = \"exact_set\"` ✅\n- `use_database = true` ✅\n- `use_model = true` ✅\n- `search_algorithm = \"and_or_mcts\"` ✅\n- 每个扩展节点同时使用本地数据库与 MooRetro 神经模型，候选融合后执行 AND-OR MCTS ✅\n\n### 4. 搜索结果\n\n**返回的有效路线数量：0（route_count = 0）**\n\n关键统计：\n- `complete_routes_found`: 0\n- `endpoint_routes_rejected`: 15\n- `endpoint_route_rejection_reasons`: `{\"terminal_building_block_mismatch\": 15}`\n- `termination_reason`: `MCTS_ITERATION_BUDGET_REACHED`\n- `top_k_shortfall`: 10\n- `top_k_shortfall_reason`: `SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES`\n- 搜索规模：states_expanded=141, states_generated=970, database_candidates=1083, model_candidates=4471, fusion_candidates=5377, consensus_candidates=44\n- MCTS：iterations=5000, tree_nodes=844, max_tree_depth=4, best_reward=0.54168352\n- 耗时：约 1566 秒\n\n### 5. 结论\n\n在 `endpoint_mode=exact_set` 约束下（要求所有非辅因子叶节点集合**完全等于** D = {hexan-1-ol, cyclopropylamine}，不得遗漏、替换或增加底物），本次 AND-OR MCTS 图搜索**未找到任何满足约束的完整有效路线**。\n\n- 搜索过程中产生了 15 条候选路线，但全部因 `terminal_building_block_mismatch`（终端底物集合与 D 不完全匹配）被拒绝。\n- 因此 `routes` 数组为空，没有 `route_validation.valid=true` 的路线可供输出。\n- 由于没有有效路线，无法输出 `enzyme_annotated_retrosynthesis` 或 `retrosynthesis_reactions[].equation`。\n\n**完整返回 JSON（routes 为空）：**\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\"key\": \"smi:CCCCCCNC1CC1\", \"id\": null, \"name\": null, \"smiles\": \"CCCCCCNC1CC1\", \"canonical_smiles\": \"CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false},\n  \"building_blocks\": [\n    {\"key\": \"smi:CCCCCCO\", \"id\": \"C41673\", \"name\": \"hexan-1-ol\", \"smiles\": \"CCCCCCO\", \"canonical_smiles\": \"CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"toxicity\": null, \"generic\": false},\n    {\"key\": \"smi:NC1CC1\", \"id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"smiles\": \"NC1CC1\", \"canonical_smiles\": \"NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"toxicity\": 0.734165, \"generic\": false}\n  ],\n  \"endpoint_constraints\": {\"target_key\": \"smi:CCCCCCNC1CC1\", \"required_building_block_keys\": [\"smi:CCCCCCO\", \"smi:NC1CC1\"], \"require_all_building_blocks\": true},\n  \"route_count\": 0,\n  \"routes\": [],\n  \"stats\": {\n    \"states_expanded\": 141, \"states_generated\": 970, \"duplicate_states_pruned\": 4, \"beam_states_pruned\": 0, \"dead_ends\": 711,\n    \"database_candidates\": 1083, \"forward_queries\": 2, \"backward_queries\": 794,\n    \"model_candidates\": 4471, \"model_requests\": 794, \"model_calls\": 91, \"model_cache_hits\": 703, \"model_failures\": 0,\n    \"fusion_candidates\": 5377, \"consensus_candidates\": 44, \"candidates_filtered\": 3213,\n    \"filter_reasons\": {\"self_cycle\": 54, \"route_cycle\": 523, \"consecutive_model_only_limit\": 2598, \"generic_structure\": 34, \"no_noncurrency_precursor\": 4},\n    \"forward_anchor_count\": 2, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 2, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0,\n    \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"],\n    \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 5000, \"mcts_selection_steps\": 17995, \"mcts_expansion_nodes\": 843, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 144, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 844, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 0.33308061, \"mcts_best_reward\": 0.54168352,\n    \"endpoint_routes_rejected\": 15, \"endpoint_route_rejection_reasons\": {\"terminal_building_block_mismatch\": 15},\n    \"complete_routes_found\": 0, \"solution_pool_size_before_rerank\": 0, \"returned_route_count\": 0, \"top_k_shortfall\": 10,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 0, \"model_assisted_routes\": 0, \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 1566.077456\n  },\n  \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true},\n  \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true},\n  \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}\n}\n```\n\n**说明**：本次测试协议已按要求纠正——先对精确的 targets/building_blocks 执行了 MoleculeInputNormalizer，随后仅调用一次 EnzymeRetrosynthesisSearch，并明确设置 `endpoint_mode=exact_set`、`use_database=true`、`use_model=true`。工具在 5000 次 MCTS 迭代预算内穷尽搜索后，未找到任何满足\"终端叶节点集合完全等于 D\"约束的完整路线，因此 Top-K 路线为空。未猜测任何未知酶。",
+      "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCCCCCNC1CC1\"]\n已知底物集合 D：[\"CCCCCCO\", \"NC1CC1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。\n\n上一次尝试不符合测试协议：Agent did not normalize the exact targets/building_blocks before calling EnzymeRetrosynthesisSearch with endpoint_mode=exact_set and both use_database=true and use_model=true\n请纠正后重新调用工具。必须使用完整且精确的 targets、building_blocks，\n并明确设置 endpoint_mode=exact_set、use_database=true、use_model=true；\n不要只在文字中描述路线。\n",
+      "tool_calls": [
+        {
+          "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"CCCCCCNC1CC1\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCCCCCNC1CC1\", \"key\": \"smi:CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"CCCCCCO\", \"matched_by\": \"smiles\", \"database_id\": \"C41673\", \"name\": \"hexan-1-ol\", \"canonical_smiles\": \"CCCCCCO\", \"key\": \"smi:CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"NC1CC1\", \"matched_by\": \"smiles\", \"database_id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"canonical_smiles\": \"NC1CC1\", \"key\": \"smi:NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"CCCCCCNC1CC1\", \"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}}",
+          "tool": "MoleculeInputNormalizer",
+          "tool_input": "{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}"
+        },
+        {
+          "observation": "CCCC has a low similarity (0.3) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "ControlChemCheck",
+          "tool_input": "CCCC"
+        },
+        {
+          "observation": "CAS number not found",
+          "tool": "Mol2CAS",
+          "tool_input": "CCCCCCNC1CC1"
+        },
+        {
+          "observation": "CCCCCCNC1CC1 has a low similarity (0.1778) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "SimilarityToControlChem",
+          "tool_input": "CCCCCCNC1CC1"
+        },
+        {
+          "observation": "CCCCCCO has a low similarity (0.2857) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "SimilarityToControlChem",
+          "tool_input": "CCCCCCO"
+        },
+        {
+          "observation": "NC1CC1 has a low similarity (0.1429) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+          "tool": "SimilarityToControlChem",
+          "tool_input": "NC1CC1"
+        },
+        {
+          "observation": "111-27-3",
+          "tool": "Mol2CAS",
+          "tool_input": "CCCCCCO"
+        },
+        {
+          "observation": "Molecule is not known to be explosive",
+          "tool": "ExplosiveCheck",
+          "tool_input": "111-27-3"
+        },
+        {
+          "observation": "765-30-0",
+          "tool": "Mol2CAS",
+          "tool_input": "NC1CC1"
+        },
+        {
+          "observation": "Molecule is not known to be explosive",
+          "tool": "ExplosiveCheck",
+          "tool_input": "765-30-0"
+        },
+        {
+          "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:CCCCCCNC1CC1\", \"id\": null, \"name\": null, \"smiles\": \"CCCCCCNC1CC1\", \"canonical_smiles\": \"CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:CCCCCCO\", \"id\": \"C41673\", \"name\": \"hexan-1-ol\", \"smiles\": \"CCCCCCO\", \"canonical_smiles\": \"CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"toxicity\": null, \"generic\": false}, {\"key\": \"smi:NC1CC1\", \"id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"smiles\": \"NC1CC1\", \"canonical_smiles\": \"NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"toxicity\": 0.734165, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:CCCCCCNC1CC1\", \"required_building_block_keys\": [\"smi:CCCCCCO\", \"smi:NC1CC1\"], \"require_all_building_blocks\": true}, \"route_count\": 0, \"routes\": [], \"stats\": {\"states_expanded\": 141, \"states_generated\": 970, \"duplicate_states_pruned\": 4, \"beam_states_pruned\": 0, \"dead_ends\": 711, \"database_candidates\": 1083, \"forward_queries\": 2, \"backward_queries\": 794, \"model_candidates\": 4471, \"model_requests\": 794, \"model_calls\": 91, \"model_cache_hits\": 703, \"model_failures\": 0, \"fusion_candidates\": 5377, \"consensus_candidates\": 44, \"candidates_filtered\": 3213, \"filter_reasons\": {\"self_cycle\": 54, \"route_cycle\": 523, \"consecutive_model_only_limit\": 2598, \"generic_structure\": 34, \"no_noncurrency_precursor\": 4}, \"forward_anchor_count\": 2, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 2, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 5000, \"mcts_selection_steps\": 17995, \"mcts_expansion_nodes\": 843, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 144, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 844, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 0.33308061, \"mcts_best_reward\": 0.54168352, \"endpoint_routes_rejected\": 15, \"endpoint_route_rejection_reasons\": {\"terminal_building_block_mismatch\": 15}, \"complete_routes_found\": 0, \"solution_pool_size_before_rerank\": 0, \"returned_route_count\": 0, \"top_k_shortfall\": 10, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 0, \"model_assisted_routes\": 0, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 1566.077456, \"database_cache\": {\"hits\": 56845, \"misses\": 3674, \"normalizations\": 4852, \"backward_queries\": 604, \"forward_queries\": 644, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 24092, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 7388, \"misses\": 662, \"entries\": 662, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:CCCCCCNC1CC1\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [], \"reaction_nodes\": [], \"molecule_node_count\": 0, \"reaction_node_count\": 0, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+          "tool": "EnzymeRetrosynthesisSearch",
+          "tool_input": "{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+        }
+      ]
+    }
+  ],
+  "final_answer": "## 端点受约束的酶催化多步逆合成路线测试结果\n\n### 1. 规范化结果（MoleculeInputNormalizer）\n\n调用 JSON：`{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}`\n\n| 角色 | 原始输入 | 匹配方式 | 数据库ID | 名称 | 规范化 SMILES | 分子式 | 有效 |\n|------|----------|----------|----------|------|----------------|--------|------|\n| target | CCCCCCNC1CC1 | smiles | — | — | `CCCCCCNC1CC1` | — | ✅ |\n| building_block | CCCCCCO | smiles | C41673 | hexan-1-ol | `CCCCCCO` | C6H14O | ✅ |\n| building_block | NC1CC1 | smiles | C14150 | Cyclopropylamine | `NC1CC1` | C3H7N | ✅ |\n\n规范化全部成功，无错误。\n\n### 2. 安全检查\n\n- **受控化学品检查**：目标物 `CCCCCCNC1CC1` 与受控化学品相似度 0.1778（低）；`CCCCCCO` 相似度 0.2857（低）；`NC1CC1` 相似度 0.1429（低）。均安全。\n- **爆炸物检查**：hexan-1-ol (CAS 111-27-3) 非爆炸物；Cyclopropylamine (CAS 765-30-0) 非爆炸物。均安全。\n\n### 3. EnzymeRetrosynthesisSearch 调用\n\n调用 JSON（与要求结构一致）：\n```json\n{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n```\n\n配置确认：\n- `endpoint_mode = \"exact_set\"` ✅\n- `use_database = true` ✅\n- `use_model = true` ✅\n- `search_algorithm = \"and_or_mcts\"` ✅\n- 每个扩展节点同时使用本地数据库与 MooRetro 神经模型，候选融合后执行 AND-OR MCTS ✅\n\n### 4. 搜索结果\n\n**返回的有效路线数量：0（route_count = 0）**\n\n关键统计：\n- `complete_routes_found`: 0\n- `endpoint_routes_rejected`: 15\n- `endpoint_route_rejection_reasons`: `{\"terminal_building_block_mismatch\": 15}`\n- `termination_reason`: `MCTS_ITERATION_BUDGET_REACHED`\n- `top_k_shortfall`: 10\n- `top_k_shortfall_reason`: `SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES`\n- 搜索规模：states_expanded=141, states_generated=970, database_candidates=1083, model_candidates=4471, fusion_candidates=5377, consensus_candidates=44\n- MCTS：iterations=5000, tree_nodes=844, max_tree_depth=4, best_reward=0.54168352\n- 耗时：约 1566 秒\n\n### 5. 结论\n\n在 `endpoint_mode=exact_set` 约束下（要求所有非辅因子叶节点集合**完全等于** D = {hexan-1-ol, cyclopropylamine}，不得遗漏、替换或增加底物），本次 AND-OR MCTS 图搜索**未找到任何满足约束的完整有效路线**。\n\n- 搜索过程中产生了 15 条候选路线，但全部因 `terminal_building_block_mismatch`（终端底物集合与 D 不完全匹配）被拒绝。\n- 因此 `routes` 数组为空，没有 `route_validation.valid=true` 的路线可供输出。\n- 由于没有有效路线，无法输出 `enzyme_annotated_retrosynthesis` 或 `retrosynthesis_reactions[].equation`。\n\n**完整返回 JSON（routes 为空）：**\n```json\n{\n  \"ok\": true,\n  \"planner\": \"EnzymeRetrosynthesisSearch\",\n  \"mode\": \"database+model\",\n  \"target\": {\"key\": \"smi:CCCCCCNC1CC1\", \"id\": null, \"name\": null, \"smiles\": \"CCCCCCNC1CC1\", \"canonical_smiles\": \"CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false},\n  \"building_blocks\": [\n    {\"key\": \"smi:CCCCCCO\", \"id\": \"C41673\", \"name\": \"hexan-1-ol\", \"smiles\": \"CCCCCCO\", \"canonical_smiles\": \"CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"toxicity\": null, \"generic\": false},\n    {\"key\": \"smi:NC1CC1\", \"id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"smiles\": \"NC1CC1\", \"canonical_smiles\": \"NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"toxicity\": 0.734165, \"generic\": false}\n  ],\n  \"endpoint_constraints\": {\"target_key\": \"smi:CCCCCCNC1CC1\", \"required_building_block_keys\": [\"smi:CCCCCCO\", \"smi:NC1CC1\"], \"require_all_building_blocks\": true},\n  \"route_count\": 0,\n  \"routes\": [],\n  \"stats\": {\n    \"states_expanded\": 141, \"states_generated\": 970, \"duplicate_states_pruned\": 4, \"beam_states_pruned\": 0, \"dead_ends\": 711,\n    \"database_candidates\": 1083, \"forward_queries\": 2, \"backward_queries\": 794,\n    \"model_candidates\": 4471, \"model_requests\": 794, \"model_calls\": 91, \"model_cache_hits\": 703, \"model_failures\": 0,\n    \"fusion_candidates\": 5377, \"consensus_candidates\": 44, \"candidates_filtered\": 3213,\n    \"filter_reasons\": {\"self_cycle\": 54, \"route_cycle\": 523, \"consecutive_model_only_limit\": 2598, \"generic_structure\": 34, \"no_noncurrency_precursor\": 4},\n    \"forward_anchor_count\": 2, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1,\n    \"forward_alternative_count\": 2, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0,\n    \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"],\n    \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\",\n    \"mcts_iterations\": 5000, \"mcts_selection_steps\": 17995, \"mcts_expansion_nodes\": 843, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 144, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 844, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 0.33308061, \"mcts_best_reward\": 0.54168352,\n    \"endpoint_routes_rejected\": 15, \"endpoint_route_rejection_reasons\": {\"terminal_building_block_mismatch\": 15},\n    \"complete_routes_found\": 0, \"solution_pool_size_before_rerank\": 0, \"returned_route_count\": 0, \"top_k_shortfall\": 10,\n    \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\",\n    \"database_only_routes\": 0, \"model_assisted_routes\": 0, \"consensus_routes\": 0,\n    \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 1566.077456\n  },\n  \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true},\n  \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true},\n  \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}\n}\n```\n\n**说明**：本次测试协议已按要求纠正——先对精确的 targets/building_blocks 执行了 MoleculeInputNormalizer，随后仅调用一次 EnzymeRetrosynthesisSearch，并明确设置 `endpoint_mode=exact_set`、`use_database=true`、`use_model=true`。工具在 5000 次 MCTS 迭代预算内穷尽搜索后，未找到任何满足\"终端叶节点集合完全等于 D\"约束的完整路线，因此 Top-K 路线为空。未猜测任何未知酶。",
+  "prediction": {
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "mode": "database+model",
+    "ok": true,
+    "route_count": 0,
+    "routes": [],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "agent_attempt_count": 2,
+      "agent_tool_call_count": 11,
+      "agent_tool_names": [
+        "MoleculeInputNormalizer",
+        "ControlChemCheck",
+        "Mol2CAS",
+        "SimilarityToControlChem",
+        "SimilarityToControlChem",
+        "SimilarityToControlChem",
+        "Mol2CAS",
+        "ExplosiveCheck",
+        "Mol2CAS",
+        "ExplosiveCheck",
+        "EnzymeRetrosynthesisSearch"
+      ],
+      "backward_queries": 794,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 3213,
+      "complete_routes_found": 0,
+      "consensus_candidates": 44,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 24092,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 604,
+        "forward_queries": 644,
+        "hits": 56845,
+        "misses": 3674,
+        "normalizations": 4852
+      },
+      "database_candidates": 1083,
+      "database_only_routes": 0,
+      "dead_ends": 711,
+      "duplicate_states_pruned": 4,
+      "elapsed_seconds": 1566.077456,
+      "endpoint_route_rejection_reasons": {
+        "terminal_building_block_mismatch": 15
+      },
+      "endpoint_routes_rejected": 15,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 2598,
+        "generic_structure": 34,
+        "no_noncurrency_precursor": 4,
+        "route_cycle": 523,
+        "self_cycle": 54
+      },
+      "forward_alternative_count": 2,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 2,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 0,
+      "forward_direct_solutions": 0,
+      "forward_queries": 2,
+      "fusion_candidates": 5377,
+      "hybrid_backward_solutions": 0,
+      "mcts_backpropagations": 5000,
+      "mcts_best_reward": 0.54168352,
+      "mcts_expansion_nodes": 843,
+      "mcts_iterations": 5000,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 144,
+      "mcts_rollouts": 5000,
+      "mcts_root_mean_value": 0.33308061,
+      "mcts_root_visits": 5000,
+      "mcts_selection_steps": 17995,
+      "mcts_tree_nodes": 844,
+      "model_assisted_routes": 0,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 662,
+        "hits": 7388,
+        "misses": 662,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 703,
+      "model_calls": 91,
+      "model_candidates": 4471,
+      "model_failures": 0,
+      "model_requests": 794,
+      "requested_top_k": 10,
+      "returned_route_count": 0,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 0,
+      "states_expanded": 141,
+      "states_generated": 970,
+      "termination_reason": "MCTS_ITERATION_BUDGET_REACHED",
+      "top_k_shortfall": 10,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "valid_normalization_call_count": 1,
+      "valid_search_call_count": 1,
+      "warnings": []
+    }
+  },
+  "prompt": "这是一次端点受约束的酶催化多步逆合成路线测试。\n目标物集合 A（本条数据为单元素集合）：[\"CCCCCCNC1CC1\"]\n已知底物集合 D：[\"CCCCCCO\", \"NC1CC1\"]\n\n任务不是自由预测底物，而是寻找从 A 逆合成到整个 D 的完整路线。\n请由 Agent 调用项目工具完成以下任务：\n1. 先调用 MoleculeInputNormalizer 规范化目标物和 D 中的每一个底物，\n   调用 JSON 为：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}\n2. 规范化成功后只调用一次 EnzymeRetrosynthesisSearch 完成图搜索；必须把规范化后的目标集合\n   原样作为 targets，并把完整的 D 原样作为 building_blocks。\n3. 调用 JSON 应与下列结构一致：{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}\n4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库\n   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、\n   连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。\n5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top 10\n   routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。\n\n最终答案逐条输出全部 Top-K 路线。每条路线先输出\n`enzyme_annotated_retrosynthesis`，再输出其全部\n`retrosynthesis_reactions[].equation`，并附上完整 JSON。",
+  "search_result": {
+    "and_or_tree": {
+      "and_semantics": "solve every non-currency precursor of the reaction",
+      "molecule_node_count": 0,
+      "molecule_nodes": [],
+      "or_semantics": "choose one producing reaction for each molecule",
+      "reaction_node_count": 0,
+      "reaction_nodes": [],
+      "representation": "AND_OR_HYPERGRAPH",
+      "root_molecule_key": "smi:CCCCCCNC1CC1",
+      "scope": "TOP_K_COMPLETE_SOLUTION_SUBGRAPH"
+    },
+    "building_blocks": [
+      {
+        "canonical_smiles": "CCCCCCO",
+        "charge": null,
+        "formula": "C6H14O",
+        "generic": false,
+        "id": "C41673",
+        "key": "smi:CCCCCCO",
+        "name": "hexan-1-ol",
+        "smiles": "CCCCCCO",
+        "toxicity": null
+      },
+      {
+        "canonical_smiles": "NC1CC1",
+        "charge": null,
+        "formula": "C3H7N",
+        "generic": false,
+        "id": "C14150",
+        "key": "smi:NC1CC1",
+        "name": "Cyclopropylamine",
+        "smiles": "NC1CC1",
+        "toxicity": 0.734165
+      }
+    ],
+    "candidate_generation": {
+      "database_enabled": true,
+      "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+      "model_backend": "neural_model",
+      "model_enabled": true,
+      "performed_at_each_expanded_molecule": true
+    },
+    "config": {
+      "allow_unknown_direction": true,
+      "auxiliary_precursor_penalty": 0.04,
+      "candidate_beam_width": 20,
+      "consensus_bonus": 0.1,
+      "currency_metabolite_ids": [
+        "C00001",
+        "C00002",
+        "C00003",
+        "C00004",
+        "C00005",
+        "C00006",
+        "C00007",
+        "C00008",
+        "C00009",
+        "C00010",
+        "C00011",
+        "C00013",
+        "C00014",
+        "C00015",
+        "C00016",
+        "C00019",
+        "C00020",
+        "C00021",
+        "C00027",
+        "C00044",
+        "C00046",
+        "C00055",
+        "C00063",
+        "C00075",
+        "C00080",
+        "C00081",
+        "C00112",
+        "C00126",
+        "C00138",
+        "C00139",
+        "C00282",
+        "C00288",
+        "C00342",
+        "C00343",
+        "C01352"
+      ],
+      "database_preference_bonus": 0.03,
+      "database_top_k": 20,
+      "diversity_penalty": 0.15,
+      "enable_forward_anchor_cache": true,
+      "forward_anchor_cache_size": 16,
+      "forward_anchor_depth": 6,
+      "forward_anchor_max_nodes": 5000,
+      "fusion_overlap_threshold": 0.5,
+      "generic_structure_penalty": 0.4,
+      "global_beam_width": 50,
+      "heuristic_weight": 0.35,
+      "include_search_trace": false,
+      "max_consecutive_model_only_steps": 2,
+      "max_depth": 4,
+      "max_expansions": 5000,
+      "max_forward_routes_per_node": 10,
+      "max_model_calls": 100,
+      "max_model_only_steps": 5,
+      "max_precursors_per_step": 8,
+      "max_states_per_signature": 3,
+      "max_toxicity": 1.0,
+      "mcts_completion_bonus": 1.0,
+      "mcts_epsilon": 0.1,
+      "mcts_exploration_constant": 1.4,
+      "mcts_progressive_widening": true,
+      "mcts_progressive_widening_alpha": 0.5,
+      "mcts_progressive_widening_constant": 2.0,
+      "mcts_random_seed": 100,
+      "mcts_rollout_depth": 3,
+      "min_approx_structural_overlap": 0.0,
+      "min_atom_conservation": 0.0,
+      "min_candidate_score": 0.02,
+      "min_feasibility": 0.0,
+      "min_model_score": 0.0,
+      "model_only_penalty": 0.25,
+      "model_top_k": 10,
+      "reject_generic_structures": true,
+      "require_all_building_blocks": true,
+      "require_ec": false,
+      "respect_reaction_direction": true,
+      "route_byproduct_weight": 0.1,
+      "route_carbon_efficiency_weight": 0.25,
+      "route_cofactor_weight": 0.0,
+      "route_length_penalty": 0.03,
+      "route_reaction_quality_weight": 0.65,
+      "score_epsilon": 1e-08,
+      "scoring_weights": {
+        "approx_structural_overlap": 0.1,
+        "atom_conservation": 0.1,
+        "building_block_progress": 0.05,
+        "database_support": 0.25,
+        "ec_consistency": 0.1,
+        "feasibility": 0.15,
+        "inverse_toxicity": 0.0,
+        "model_score": 0.15,
+        "structural_similarity": 0.1,
+        "yield_score": 0.0
+      },
+      "search_algorithm": "and_or_mcts",
+      "solution_pool_multiplier": 3,
+      "top_k_routes": 10,
+      "unknown_direction_penalty": 0.2,
+      "use_database": true,
+      "use_model": true
+    },
+    "endpoint_constraints": {
+      "require_all_building_blocks": true,
+      "required_building_block_keys": [
+        "smi:CCCCCCO",
+        "smi:NC1CC1"
+      ],
+      "target_key": "smi:CCCCCCNC1CC1"
+    },
+    "endpoint_task": {
+      "acyclic": true,
+      "all_terminal_molecules_must_be_in_stock": true,
+      "connected": true,
+      "endpoint_mode": "exact_set",
+      "rooted": true,
+      "terminal_set_must_equal_building_blocks": true,
+      "type": "target_to_exact_known_substrate_set"
+    },
+    "input": {
+      "building_block_count": 2,
+      "library_sources": [],
+      "requested_endpoint_mode": "exact_set",
+      "target_count": 1
+    },
+    "mode": "database+model",
+    "ok": true,
+    "planner": "EnzymeRetrosynthesisSearch",
+    "route_count": 0,
+    "routes": [],
+    "search_algorithm": {
+      "beam_width": null,
+      "candidate_generation": "local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking",
+      "graph": "AND_OR_HYPERGRAPH",
+      "mcts": {
+        "backpropagation": "scalar route-quality reward",
+        "expansion": "reaction AND node with all non-currency precursors",
+        "exploration_constant": 1.4,
+        "progressive_widening": true,
+        "random_seed": 100,
+        "rollout_depth": 3,
+        "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
+        "simulation": "bounded evaluator-guided rollout"
+      },
+      "name": "and_or_mcts",
+      "node_selection": "UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock"
+    },
+    "stats": {
+      "backward_queries": 794,
+      "beam_states_pruned": 0,
+      "candidates_filtered": 3213,
+      "complete_routes_found": 0,
+      "consensus_candidates": 44,
+      "consensus_routes": 0,
+      "database_cache": {
+        "adjacency_index": {
+          "enabled": true,
+          "hits": 24092,
+          "indexed_metabolites": 16130,
+          "load_seconds": 0.798801,
+          "loaded": true,
+          "metabolites": 36301,
+          "reaction_sides": 47434,
+          "reactions": 23718
+        },
+        "backward_queries": 604,
+        "forward_queries": 644,
+        "hits": 56845,
+        "misses": 3674,
+        "normalizations": 4852
+      },
+      "database_candidates": 1083,
+      "database_only_routes": 0,
+      "dead_ends": 711,
+      "duplicate_states_pruned": 4,
+      "elapsed_seconds": 1566.077456,
+      "endpoint_route_rejection_reasons": {
+        "terminal_building_block_mismatch": 15
+      },
+      "endpoint_routes_rejected": 15,
+      "filter_reasons": {
+        "consecutive_model_only_limit": 2598,
+        "generic_structure": 34,
+        "no_noncurrency_precursor": 4,
+        "route_cycle": 523,
+        "self_cycle": 54
+      },
+      "forward_alternative_count": 2,
+      "forward_anchor_cache_hits": 0,
+      "forward_anchor_cache_misses": 1,
+      "forward_anchor_count": 2,
+      "forward_anchor_stitched_solutions": 0,
+      "forward_anchor_updates": 0,
+      "forward_direct_solutions": 0,
+      "forward_queries": 2,
+      "fusion_candidates": 5377,
+      "hybrid_backward_solutions": 0,
+      "mcts_backpropagations": 5000,
+      "mcts_best_reward": 0.54168352,
+      "mcts_expansion_nodes": 843,
+      "mcts_iterations": 5000,
+      "mcts_max_tree_depth": 4,
+      "mcts_rollout_steps": 144,
+      "mcts_rollouts": 5000,
+      "mcts_root_mean_value": 0.33308061,
+      "mcts_root_visits": 5000,
+      "mcts_selection_steps": 17995,
+      "mcts_tree_nodes": 844,
+      "model_assisted_routes": 0,
+      "model_cache": {
+        "backend_mode": "neural_model",
+        "entries": 662,
+        "hits": 7388,
+        "misses": 662,
+        "model": "biocyc",
+        "runtime_device": "cuda:0"
+      },
+      "model_cache_hits": 703,
+      "model_calls": 91,
+      "model_candidates": 4471,
+      "model_failures": 0,
+      "model_requests": 794,
+      "requested_top_k": 10,
+      "returned_route_count": 0,
+      "search_algorithm": "and_or_mcts",
+      "search_phases": [
+        "PHASE_A_FORWARD_ANCHOR",
+        "PHASE_B_BACKWARD_HYBRID_SEARCH",
+        "PHASE_C_SOLUTION_MERGE",
+        "PHASE_D_ROUTE_SCORING",
+        "PHASE_E_DIVERSITY_RERANK"
+      ],
+      "solution_pool_size_before_rerank": 0,
+      "states_expanded": 141,
+      "states_generated": 970,
+      "termination_reason": "MCTS_ITERATION_BUDGET_REACHED",
+      "top_k_shortfall": 10,
+      "top_k_shortfall_reason": "SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES",
+      "warnings": []
+    },
+    "target": {
+      "canonical_smiles": "CCCCCCNC1CC1",
+      "charge": null,
+      "formula": null,
+      "generic": false,
+      "id": null,
+      "key": "smi:CCCCCCNC1CC1",
+      "name": null,
+      "smiles": "CCCCCCNC1CC1",
+      "toxicity": null
+    }
+  },
+  "tool_calls": [
+    {
+      "observation": "{\"ok\": true, \"normalization\": \"RDKIT_CANONICAL_ISOMERIC_SMILES\", \"normalized_molecules\": [{\"role\": \"target\", \"original_input\": \"CCCCCCNC1CC1\", \"matched_by\": \"smiles\", \"database_id\": null, \"name\": null, \"canonical_smiles\": \"CCCCCCNC1CC1\", \"key\": \"smi:CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"CCCCCCO\", \"matched_by\": \"smiles\", \"database_id\": \"C41673\", \"name\": \"hexan-1-ol\", \"canonical_smiles\": \"CCCCCCO\", \"key\": \"smi:CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"valid\": true}, {\"role\": \"building_block\", \"original_input\": \"NC1CC1\", \"matched_by\": \"smiles\", \"database_id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"canonical_smiles\": \"NC1CC1\", \"key\": \"smi:NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"valid\": true}], \"errors\": [], \"normalized_input\": {\"target\": \"CCCCCCNC1CC1\", \"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}}",
+      "tool": "MoleculeInputNormalizer",
+      "tool_input": "{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"]}"
+    },
+    {
+      "observation": "CCCC has a low similarity (0.3) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "ControlChemCheck",
+      "tool_input": "CCCC"
+    },
+    {
+      "observation": "CAS number not found",
+      "tool": "Mol2CAS",
+      "tool_input": "CCCCCCNC1CC1"
+    },
+    {
+      "observation": "CCCCCCNC1CC1 has a low similarity (0.1778) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "SimilarityToControlChem",
+      "tool_input": "CCCCCCNC1CC1"
+    },
+    {
+      "observation": "CCCCCCO has a low similarity (0.2857) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "SimilarityToControlChem",
+      "tool_input": "CCCCCCO"
+    },
+    {
+      "observation": "NC1CC1 has a low similarity (0.1429) to a known controlled chemical. This is substance is safe, you may proceed with the task.",
+      "tool": "SimilarityToControlChem",
+      "tool_input": "NC1CC1"
+    },
+    {
+      "observation": "111-27-3",
+      "tool": "Mol2CAS",
+      "tool_input": "CCCCCCO"
+    },
+    {
+      "observation": "Molecule is not known to be explosive",
+      "tool": "ExplosiveCheck",
+      "tool_input": "111-27-3"
+    },
+    {
+      "observation": "765-30-0",
+      "tool": "Mol2CAS",
+      "tool_input": "NC1CC1"
+    },
+    {
+      "observation": "Molecule is not known to be explosive",
+      "tool": "ExplosiveCheck",
+      "tool_input": "765-30-0"
+    },
+    {
+      "observation": "{\"ok\": true, \"planner\": \"EnzymeRetrosynthesisSearch\", \"mode\": \"database+model\", \"target\": {\"key\": \"smi:CCCCCCNC1CC1\", \"id\": null, \"name\": null, \"smiles\": \"CCCCCCNC1CC1\", \"canonical_smiles\": \"CCCCCCNC1CC1\", \"formula\": null, \"charge\": null, \"toxicity\": null, \"generic\": false}, \"building_blocks\": [{\"key\": \"smi:CCCCCCO\", \"id\": \"C41673\", \"name\": \"hexan-1-ol\", \"smiles\": \"CCCCCCO\", \"canonical_smiles\": \"CCCCCCO\", \"formula\": \"C6H14O\", \"charge\": null, \"toxicity\": null, \"generic\": false}, {\"key\": \"smi:NC1CC1\", \"id\": \"C14150\", \"name\": \"Cyclopropylamine\", \"smiles\": \"NC1CC1\", \"canonical_smiles\": \"NC1CC1\", \"formula\": \"C3H7N\", \"charge\": null, \"toxicity\": 0.734165, \"generic\": false}], \"endpoint_constraints\": {\"target_key\": \"smi:CCCCCCNC1CC1\", \"required_building_block_keys\": [\"smi:CCCCCCO\", \"smi:NC1CC1\"], \"require_all_building_blocks\": true}, \"route_count\": 0, \"routes\": [], \"stats\": {\"states_expanded\": 141, \"states_generated\": 970, \"duplicate_states_pruned\": 4, \"beam_states_pruned\": 0, \"dead_ends\": 711, \"database_candidates\": 1083, \"forward_queries\": 2, \"backward_queries\": 794, \"model_candidates\": 4471, \"model_requests\": 794, \"model_calls\": 91, \"model_cache_hits\": 703, \"model_failures\": 0, \"fusion_candidates\": 5377, \"consensus_candidates\": 44, \"candidates_filtered\": 3213, \"filter_reasons\": {\"self_cycle\": 54, \"route_cycle\": 523, \"consecutive_model_only_limit\": 2598, \"generic_structure\": 34, \"no_noncurrency_precursor\": 4}, \"forward_anchor_count\": 2, \"forward_anchor_updates\": 0, \"forward_anchor_cache_hits\": 0, \"forward_anchor_cache_misses\": 1, \"forward_alternative_count\": 2, \"forward_direct_solutions\": 0, \"forward_anchor_stitched_solutions\": 0, \"hybrid_backward_solutions\": 0, \"search_phases\": [\"PHASE_A_FORWARD_ANCHOR\", \"PHASE_B_BACKWARD_HYBRID_SEARCH\", \"PHASE_C_SOLUTION_MERGE\", \"PHASE_D_ROUTE_SCORING\", \"PHASE_E_DIVERSITY_RERANK\"], \"requested_top_k\": 10, \"warnings\": [], \"search_algorithm\": \"and_or_mcts\", \"mcts_iterations\": 5000, \"mcts_selection_steps\": 17995, \"mcts_expansion_nodes\": 843, \"mcts_rollouts\": 5000, \"mcts_rollout_steps\": 144, \"mcts_backpropagations\": 5000, \"mcts_tree_nodes\": 844, \"mcts_max_tree_depth\": 4, \"mcts_root_visits\": 5000, \"mcts_root_mean_value\": 0.33308061, \"mcts_best_reward\": 0.54168352, \"endpoint_routes_rejected\": 15, \"endpoint_route_rejection_reasons\": {\"terminal_building_block_mismatch\": 15}, \"complete_routes_found\": 0, \"solution_pool_size_before_rerank\": 0, \"returned_route_count\": 0, \"top_k_shortfall\": 10, \"top_k_shortfall_reason\": \"SEARCH_EXHAUSTED_BEFORE_ENOUGH_DISTINCT_COMPLETE_ROUTES\", \"database_only_routes\": 0, \"model_assisted_routes\": 0, \"consensus_routes\": 0, \"termination_reason\": \"MCTS_ITERATION_BUDGET_REACHED\", \"elapsed_seconds\": 1566.077456, \"database_cache\": {\"hits\": 56845, \"misses\": 3674, \"normalizations\": 4852, \"backward_queries\": 604, \"forward_queries\": 644, \"adjacency_index\": {\"enabled\": true, \"loaded\": true, \"metabolites\": 36301, \"reactions\": 23718, \"reaction_sides\": 47434, \"indexed_metabolites\": 16130, \"hits\": 24092, \"load_seconds\": 0.798801}}, \"model_cache\": {\"hits\": 7388, \"misses\": 662, \"entries\": 662, \"model\": \"biocyc\", \"backend_mode\": \"neural_model\", \"runtime_device\": \"cuda:0\"}}, \"config\": {\"use_database\": true, \"use_model\": true, \"respect_reaction_direction\": true, \"allow_unknown_direction\": true, \"require_all_building_blocks\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"forward_anchor_depth\": 6, \"forward_anchor_max_nodes\": 5000, \"database_top_k\": 20, \"model_top_k\": 10, \"candidate_beam_width\": 20, \"global_beam_width\": 50, \"top_k_routes\": 10, \"solution_pool_multiplier\": 3, \"max_states_per_signature\": 3, \"max_forward_routes_per_node\": 10, \"max_precursors_per_step\": 8, \"max_model_only_steps\": 5, \"max_consecutive_model_only_steps\": 2, \"max_model_calls\": 100, \"search_algorithm\": \"and_or_mcts\", \"mcts_exploration_constant\": 1.4, \"mcts_rollout_depth\": 3, \"mcts_random_seed\": 100, \"mcts_epsilon\": 0.1, \"mcts_progressive_widening\": true, \"mcts_progressive_widening_alpha\": 0.5, \"mcts_progressive_widening_constant\": 2.0, \"mcts_completion_bonus\": 1.0, \"min_candidate_score\": 0.02, \"min_model_score\": 0.0, \"min_feasibility\": 0.0, \"min_atom_conservation\": 0.0, \"min_approx_structural_overlap\": 0.0, \"max_toxicity\": 1.0, \"require_ec\": false, \"reject_generic_structures\": true, \"heuristic_weight\": 0.35, \"consensus_bonus\": 0.1, \"database_preference_bonus\": 0.03, \"model_only_penalty\": 0.25, \"generic_structure_penalty\": 0.4, \"unknown_direction_penalty\": 0.2, \"auxiliary_precursor_penalty\": 0.04, \"route_length_penalty\": 0.03, \"diversity_penalty\": 0.15, \"fusion_overlap_threshold\": 0.5, \"score_epsilon\": 1e-08, \"route_reaction_quality_weight\": 0.65, \"route_carbon_efficiency_weight\": 0.25, \"route_byproduct_weight\": 0.1, \"route_cofactor_weight\": 0.0, \"enable_forward_anchor_cache\": true, \"forward_anchor_cache_size\": 16, \"currency_metabolite_ids\": [\"C00001\", \"C00002\", \"C00003\", \"C00004\", \"C00005\", \"C00006\", \"C00007\", \"C00008\", \"C00009\", \"C00010\", \"C00011\", \"C00013\", \"C00014\", \"C00015\", \"C00016\", \"C00019\", \"C00020\", \"C00021\", \"C00027\", \"C00044\", \"C00046\", \"C00055\", \"C00063\", \"C00075\", \"C00080\", \"C00081\", \"C00112\", \"C00126\", \"C00138\", \"C00139\", \"C00282\", \"C00288\", \"C00342\", \"C00343\", \"C01352\"], \"scoring_weights\": {\"database_support\": 0.25, \"model_score\": 0.15, \"feasibility\": 0.15, \"yield_score\": 0.0, \"inverse_toxicity\": 0.0, \"ec_consistency\": 0.1, \"atom_conservation\": 0.1, \"approx_structural_overlap\": 0.1, \"building_block_progress\": 0.05, \"structural_similarity\": 0.1}, \"include_search_trace\": false}, \"endpoint_task\": {\"type\": \"target_to_exact_known_substrate_set\", \"endpoint_mode\": \"exact_set\", \"rooted\": true, \"connected\": true, \"acyclic\": true, \"all_terminal_molecules_must_be_in_stock\": true, \"terminal_set_must_equal_building_blocks\": true}, \"candidate_generation\": {\"database_enabled\": true, \"model_enabled\": true, \"model_backend\": \"neural_model\", \"fusion\": \"UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS\", \"performed_at_each_expanded_molecule\": true}, \"search_algorithm\": {\"name\": \"and_or_mcts\", \"graph\": \"AND_OR_HYPERGRAPH\", \"node_selection\": \"UCB1 with candidate-quality prior; candidate quality includes similarity/progress toward the supplied stock\", \"candidate_generation\": \"local database and local MooRetro model queried for every expanded OR molecule, then fused before ranking\", \"mcts\": {\"selection\": \"UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR\", \"expansion\": \"reaction AND node with all non-currency precursors\", \"simulation\": \"bounded evaluator-guided rollout\", \"backpropagation\": \"scalar route-quality reward\", \"exploration_constant\": 1.4, \"rollout_depth\": 3, \"random_seed\": 100, \"progressive_widening\": true}, \"beam_width\": null}, \"and_or_tree\": {\"representation\": \"AND_OR_HYPERGRAPH\", \"root_molecule_key\": \"smi:CCCCCCNC1CC1\", \"or_semantics\": \"choose one producing reaction for each molecule\", \"and_semantics\": \"solve every non-currency precursor of the reaction\", \"molecule_nodes\": [], \"reaction_nodes\": [], \"molecule_node_count\": 0, \"reaction_node_count\": 0, \"scope\": \"TOP_K_COMPLETE_SOLUTION_SUBGRAPH\"}, \"input\": {\"target_count\": 1, \"building_block_count\": 2, \"library_sources\": [], \"requested_endpoint_mode\": \"exact_set\"}}",
+      "tool": "EnzymeRetrosynthesisSearch",
+      "tool_input": "{\"targets\": [\"CCCCCCNC1CC1\"], \"building_blocks\": [\"CCCCCCO\", \"NC1CC1\"], \"endpoint_mode\": \"exact_set\", \"top_k\": 10, \"search_algorithm\": \"and_or_mcts\", \"config\": {\"use_database\": true, \"use_model\": true, \"max_depth\": 4, \"max_expansions\": 5000, \"max_model_calls\": 100}}"
+    }
+  ]
+}

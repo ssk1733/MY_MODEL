@@ -1,0 +1,242 @@
+{
+    "molecules": [
+        {
+            "id": "mol_0_0",
+            "depth": 0,
+            "visits": 0,
+            "is_root": true,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "[NH3+]CCCC[NH3+]",
+            "is_commercial": false,
+            "similarity": "0.11",
+            "toxicity": 0.081,
+            "is_terminal": false
+        },
+        {
+            "id": "mol_2_0",
+            "depth": 2,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": true,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "[NH]CCCC([NH])C(=O)O",
+            "is_commercial": false,
+            "similarity": "0.62",
+            "toxicity": 0.434,
+            "is_terminal": false
+        },
+        {
+            "id": "mol_4_0",
+            "depth": 2,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": true,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "N=CCCCN",
+            "is_commercial": false,
+            "similarity": "0.10",
+            "toxicity": 0.017,
+            "is_terminal": false
+        },
+        {
+            "id": "mol_6_0",
+            "depth": 2,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": true,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "[NH]CCCCNC(N)=O",
+            "is_commercial": false,
+            "similarity": "0.25",
+            "toxicity": 0.272,
+            "is_terminal": false
+        },
+        {
+            "id": "mol_8_0",
+            "depth": 2,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": true,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "NCCCC=O",
+            "is_commercial": false,
+            "similarity": "0.15",
+            "toxicity": 0.299,
+            "is_terminal": false
+        },
+        {
+            "id": "mol_10_0",
+            "depth": 2,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": true,
+            "solutions_count": 0,
+            "type": "molecule",
+            "molecule": "[NH]CCCCNC(=N)N",
+            "is_commercial": false,
+            "similarity": "0.43",
+            "toxicity": 0.066,
+            "is_terminal": false
+        }
+    ],
+    "reactions": [
+        {
+            "id": "rxn_128859510108176",
+            "depth": 1,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "ec": "4.1.1",
+            "reactants": "[NH]CCCC([NH])C(=O)O",
+            "scores": 0.4,
+            "templates": "[Attaching][Group]*C(=O)[O-]:1[EC]4.1.1",
+            "topk": "Top-1",
+            "similarity": 0.621,
+            "feasibility": 0.118,
+            "yield": 0.68,
+            "toxicity": 0.252,
+            "is_terminal": false
+        },
+        {
+            "id": "rxn_128857036094608",
+            "depth": 1,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "ec": "2.6.1",
+            "reactants": "N=CCCCN",
+            "scores": 0.151,
+            "templates": "[Delete][Bond]CN:1.0[Add][Bond]C=N:0.1[Leaving][Group]*[NH3+]:0[EC]2.6.1",
+            "topk": "Top-3",
+            "similarity": 0.105,
+            "feasibility": 0.1,
+            "yield": 0.897,
+            "toxicity": 0.723,
+            "is_terminal": false
+        },
+        {
+            "id": "rxn_128857051040976",
+            "depth": 1,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "ec": "3.5.1",
+            "reactants": "[NH]CCCCNC(N)=O",
+            "scores": 0.089,
+            "templates": "[Attaching][Group]*C(N)=O:0[EC]3.5.1",
+            "topk": "Top-4",
+            "similarity": 0.247,
+            "feasibility": 0.1,
+            "yield": 0.609,
+            "toxicity": 0.659,
+            "is_terminal": false
+        },
+        {
+            "id": "rxn_128857046985360",
+            "depth": 1,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "ec": "2.6.1",
+            "reactants": "NCCCC=O",
+            "scores": 0.037,
+            "templates": "[Delete][Bond]CN:1.0[Leaving][Group]*[NH3+]:0[Attaching][Group]*=O:1[EC]2.6.1",
+            "topk": "Top-5",
+            "similarity": 0.15,
+            "feasibility": 0.1,
+            "yield": 0.802,
+            "toxicity": 0.508,
+            "is_terminal": false
+        },
+        {
+            "id": "rxn_128856330401936",
+            "depth": 1,
+            "visits": 0,
+            "is_root": false,
+            "is_leaf": false,
+            "solutions_count": 0,
+            "ec": "3.5.3",
+            "reactants": "[NH]CCCCNC(=N)N",
+            "scores": 0.017,
+            "templates": "[Attaching][Group]*C(=N)N:0[EC]3.5.3",
+            "topk": "Top-9",
+            "similarity": 0.428,
+            "feasibility": 0.1,
+            "yield": 0.181,
+            "toxicity": 0.254,
+            "is_terminal": false
+        }
+    ],
+    "connection": [
+        {
+            "id": "rxn_128857036094608_mol_4_0",
+            "source": "rxn_128857036094608",
+            "target": "mol_4_0",
+            "label": ""
+        },
+        {
+            "id": "mol_0_0_rxn_128857046985360",
+            "source": "mol_0_0",
+            "target": "rxn_128857046985360",
+            "label": "Score: 0.037\nTok_k: Top-5"
+        },
+        {
+            "id": "mol_0_0_rxn_128857036094608",
+            "source": "mol_0_0",
+            "target": "rxn_128857036094608",
+            "label": "Score: 0.151\nTok_k: Top-3"
+        },
+        {
+            "id": "mol_0_0_rxn_128856330401936",
+            "source": "mol_0_0",
+            "target": "rxn_128856330401936",
+            "label": "Score: 0.017\nTok_k: Top-9"
+        },
+        {
+            "id": "rxn_128856330401936_mol_10_0",
+            "source": "rxn_128856330401936",
+            "target": "mol_10_0",
+            "label": ""
+        },
+        {
+            "id": "mol_0_0_rxn_128859510108176",
+            "source": "mol_0_0",
+            "target": "rxn_128859510108176",
+            "label": "Score: 0.400\nTok_k: Top-1"
+        },
+        {
+            "id": "rxn_128857046985360_mol_8_0",
+            "source": "rxn_128857046985360",
+            "target": "mol_8_0",
+            "label": ""
+        },
+        {
+            "id": "rxn_128857051040976_mol_6_0",
+            "source": "rxn_128857051040976",
+            "target": "mol_6_0",
+            "label": ""
+        },
+        {
+            "id": "mol_0_0_rxn_128857051040976",
+            "source": "mol_0_0",
+            "target": "rxn_128857051040976",
+            "label": "Score: 0.089\nTok_k: Top-4"
+        },
+        {
+            "id": "rxn_128859510108176_mol_2_0",
+            "source": "rxn_128859510108176",
+            "target": "mol_2_0",
+            "label": ""
+        }
+    ]
+}

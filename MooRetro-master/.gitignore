@@ -1,0 +1,9 @@
+/.*
+!.gitignore
+/enzretro
+/mooseeker
+*/__pycache__
+/__*
+/results
+*.log
+*.out
