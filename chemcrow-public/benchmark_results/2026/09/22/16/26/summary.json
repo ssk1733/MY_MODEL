@@ -1,0 +1,198 @@
+{
+  "accuracy_at_k": {
+    "complete_route_found": {
+      "1": 0.557692,
+      "10": 0.557692,
+      "3": 0.557692
+    },
+    "enzyme_all_present": {
+      "1": 0.115385,
+      "10": 0.134615,
+      "3": 0.115385
+    }
+  },
+  "case_count": 52,
+  "complete_pathway_success": {
+    "fraction": "29/52",
+    "success_count": 29,
+    "success_rate": 0.557692,
+    "total_count": 52
+  },
+  "enzyme_accuracy_at_k": {
+    "1": 0.115385,
+    "10": 0.134615,
+    "3": 0.115385
+  },
+  "enzyme_complete_pathway_success": {
+    "fraction": "7/52",
+    "success_count": 7,
+    "success_rate": 0.134615,
+    "total_count": 52
+  },
+  "enzyme_top_k": {
+    "1": {
+      "fraction": "6/52",
+      "success_count": 6,
+      "success_rate": 0.115385,
+      "total_count": 52
+    },
+    "10": {
+      "fraction": "7/52",
+      "success_count": 7,
+      "success_rate": 0.134615,
+      "total_count": 52
+    },
+    "3": {
+      "fraction": "6/52",
+      "success_count": 6,
+      "success_rate": 0.115385,
+      "total_count": 52
+    }
+  },
+  "error_count": 0,
+  "hit_count_at_k": {
+    "complete_route_found": {
+      "1": 29,
+      "10": 29,
+      "3": 29
+    },
+    "enzyme_all_present": {
+      "1": 6,
+      "10": 7,
+      "3": 6
+    }
+  },
+  "mean_reciprocal_rank": {
+    "complete_route_found": 0.557692,
+    "enzyme_all_present": 0.118132
+  },
+  "output_directory": "/root/autodl-tmp/my_model/chemcrow-public/benchmark_results/2026/09/22/16/26",
+  "pathway_accuracy_at_k": {
+    "1": 0.557692,
+    "10": 0.557692,
+    "3": 0.557692
+  },
+  "pathway_top_k": {
+    "1": {
+      "fraction": "29/52",
+      "success_count": 29,
+      "success_rate": 0.557692,
+      "total_count": 52
+    },
+    "10": {
+      "fraction": "29/52",
+      "success_count": 29,
+      "success_rate": 0.557692,
+      "total_count": 52
+    },
+    "3": {
+      "fraction": "29/52",
+      "success_count": 29,
+      "success_rate": 0.557692,
+      "total_count": 52
+    }
+  },
+  "run_config": {
+    "dataset": "/root/autodl-tmp/my_model/dataset/retrobiocat52/benchmark.jsonl",
+    "dataset_sha256": "a6e91a529871f05ccfea08ea85922187974a5e1b15e4c6b2418053ebe5403ff9",
+    "db_path": null,
+    "ec_level": 3,
+    "execution_mode": "manual_agent_simulation_without_llm_or_api",
+    "gold_fields_not_sent_to_tools": [
+      "expected.enzyme_types",
+      "reference.doi"
+    ],
+    "max_depth": 10,
+    "max_expansions": 5000,
+    "max_model_calls": 100,
+    "moo_root": "/root/autodl-tmp/my_model/MooRetro-master",
+    "output_directory": "/root/autodl-tmp/my_model/chemcrow-public/benchmark_results/2026/09/22/16/26",
+    "protocol": "retrobiocat52-tools-v1-source-partitioned-exact-set",
+    "report_top_k": [
+      1,
+      3,
+      10
+    ],
+    "route_validity": "rooted_connected_acyclic_exact_terminal_set",
+    "search_input": {
+      "endpoint_mode": "exact_set",
+      "model_backend_required": "neural_model",
+      "search_algorithm": "and_or_mcts",
+      "use_database": true,
+      "use_model": true
+    },
+    "selected_case_ids": [
+      "RBC52-001",
+      "RBC52-002",
+      "RBC52-003",
+      "RBC52-004",
+      "RBC52-005",
+      "RBC52-006",
+      "RBC52-007",
+      "RBC52-008",
+      "RBC52-009",
+      "RBC52-010",
+      "RBC52-011",
+      "RBC52-012",
+      "RBC52-013",
+      "RBC52-014",
+      "RBC52-015",
+      "RBC52-016",
+      "RBC52-017",
+      "RBC52-018",
+      "RBC52-019",
+      "RBC52-020",
+      "RBC52-021",
+      "RBC52-022",
+      "RBC52-023",
+      "RBC52-024",
+      "RBC52-025",
+      "RBC52-026",
+      "RBC52-027",
+      "RBC52-028",
+      "RBC52-029",
+      "RBC52-030",
+      "RBC52-031",
+      "RBC52-032",
+      "RBC52-033",
+      "RBC52-034",
+      "RBC52-035",
+      "RBC52-036",
+      "RBC52-037",
+      "RBC52-038",
+      "RBC52-039",
+      "RBC52-040",
+      "RBC52-041",
+      "RBC52-042",
+      "RBC52-043",
+      "RBC52-044",
+      "RBC52-045",
+      "RBC52-046",
+      "RBC52-047",
+      "RBC52-048",
+      "RBC52-049",
+      "RBC52-050",
+      "RBC52-051",
+      "RBC52-052"
+    ],
+    "single_fn_type": "biocyc",
+    "started_at": "2026-09-22T16:26:33.279683+08:00",
+    "tool_sequence": [
+      "MoleculeInputNormalizer",
+      "EnzymeRetrosynthesisSearch"
+    ],
+    "top_k": 10
+  },
+  "runtime": {
+    "mean_seconds": 97.485443,
+    "median_seconds": 107.965159,
+    "total_seconds": 5069.243022
+  },
+  "schema_version": "retrobiocat52.agent_target_substrates.v5",
+  "successful_tool_calls": 52,
+  "top_k_values": [
+    1,
+    3,
+    10
+  ]
+}

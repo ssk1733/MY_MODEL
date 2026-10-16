@@ -32,6 +32,19 @@ def _main_signature(candidate: ReactionCandidate) -> Tuple[str, ...]:
     return tuple(sorted(values))
 
 
+def complete_precursor_signature(
+    candidate: ReactionCandidate,
+) -> Tuple[str, Tuple[str, ...]]:
+    """Return the target plus the complete precursor multiset.
+
+    This includes currency and auxiliary molecules and preserves repeated
+    precursors, so ``{R, O, O}`` does not collapse to ``{R, O}``.
+    """
+    return candidate.target.key, tuple(
+        sorted(item.key for item in candidate.precursors)
+    )
+
+
 def _fusion_quality(
     database: ReactionCandidate, model: ReactionCandidate
 ) -> Tuple[float, float, bool]:
@@ -195,6 +208,58 @@ def fuse_candidates(
             seen.add(signature)
             result.append(candidate)
     return tuple(result)
+
+
+def fuse_candidates_by_complete_precursors(
+    database_candidates: Sequence[ReactionCandidate],
+    model_candidates: Sequence[ReactionCandidate],
+    config: PlannerConfig,
+) -> Tuple[ReactionCandidate, ...]:
+    """Fuse exact complete precursor multisets without consuming near matches.
+
+    Unmatched and EC-conflicting versions remain in the union. Therefore every
+    complete combination returned by either generator stays represented in the
+    merged pool.
+    """
+    remaining_models = list(model_candidates)
+    fused: List[ReactionCandidate] = []
+    for database in database_candidates:
+        match_index = None
+        match_quality = (1.0, 0.0)
+        database_signature = complete_precursor_signature(database)
+        for index, model in enumerate(remaining_models):
+            if complete_precursor_signature(model) != database_signature:
+                continue
+            compatibility = ec_compatibility(
+                database.ec_numbers, model.ec_numbers
+            )
+            if (
+                database.ec_numbers
+                and model.ec_numbers
+                and (compatibility is None or compatibility < 0.50)
+            ):
+                continue
+            match_index = index
+            match_quality = (1.0, compatibility or 0.0)
+            break
+        if match_index is None:
+            fused.append(database)
+            continue
+        model = remaining_models.pop(match_index)
+        combined = _combine_evidence(
+            database, model, match_quality[0], match_quality[1]
+        )
+        metadata = dict(combined.metadata)
+        metadata.update(
+            {
+                "fusion_rule": "EXACT_COMPLETE_PRECURSOR_MULTISET",
+                "database_source_candidate_ids": [database.candidate_id],
+                "model_source_candidate_ids": [model.candidate_id],
+            }
+        )
+        fused.append(replace(combined, metadata=metadata))
+    fused.extend(remaining_models)
+    return tuple(fused)
 
 
 def _building_block_progress(

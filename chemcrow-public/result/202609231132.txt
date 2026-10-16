@@ -1,0 +1,19 @@
+================================================================================
+ChemCrow run ID: 83714da6-ad3f-4287-8dec-3c058f61a148
+Started: 2026-09-23T11:32:11
+Finished: 2026-09-23T11:32:12
+
+========== User input ==========
+C[C@@H](N)[C@H](O)c1ccccc1的中英文名称是什么
+
+========== Intermediate steps ==========
+(no intermediate tool calls)
+
+========== Final answer ==========
+该分子 SMILES 为 C[C@@H](N)[C@H](O)c1ccccc1。
+
+- 英文名称：**(1R,2S)-2-amino-1-phenylpropan-1-ol**（也可写作 (1R,2S)-2-amino-1-phenyl-1-propanol）
+- 中文名称：**(1R,2S)-2-氨基-1-苯基-1-丙醇**
+
+补充说明：该结构对应的是 **去甲伪麻黄碱/去甲麻黄碱类** 的特定立体异构体（norephedrine 的 (1R,2S)-异构体，即 **D-norephedrine / (1R,2S)-norephedrine**）。  
+英文别名：**(1R,2S)-norephedrine**；中文别名：**(1R,2S)-去甲麻黄碱**。

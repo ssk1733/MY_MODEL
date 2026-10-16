@@ -109,32 +109,37 @@ class EnzymeReactionDatabase:
                     "SELECT * FROM metabolites WHERE id = ?", (text.upper(),)
                 ).fetchall()
             else:
-                rows = connection.execute(
-                    "SELECT * FROM metabolites WHERE name_norm = ? LIMIT 20",
-                    (text.casefold(),),
-                ).fetchall()
-                # Some fused-database internal aliases (for example plain
-                # "glucose") have no structure. Prefer a structured D/alpha/beta
-                # source record when it exists, while retaining exact-name matching.
-                if rows and all(not row["smiles"] for row in rows):
-                    aliases = (
-                        "d-" + text.casefold(),
-                        "alpha-d-" + text.casefold(),
-                        "beta-d-" + text.casefold(),
-                    )
-                    alias_rows = connection.execute(
-                        "SELECT * FROM metabolites WHERE name_norm IN (?,?,?) LIMIT 20",
-                        aliases,
+                canonical = canonicalize_smiles(text)
+                if canonical:
+                    # A valid SMILES is an explicit structure and must win over
+                    # an ambiguous exact name. RDKit SMILES `CO` is methanol,
+                    # while the database also has a compound named CO whose
+                    # structure is carbon monoxide.
+                    rows = connection.execute(
+                        "SELECT * FROM metabolites WHERE canonical_smiles = ? LIMIT 20",
+                        (canonical,),
                     ).fetchall()
-                    if alias_rows:
-                        rows = tuple(rows) + tuple(alias_rows)
-                if not rows:
-                    canonical = canonicalize_smiles(text)
-                    if canonical:
-                        rows = connection.execute(
-                            "SELECT * FROM metabolites WHERE canonical_smiles = ? LIMIT 20",
-                            (canonical,),
+                else:
+                    rows = connection.execute(
+                        "SELECT * FROM metabolites WHERE name_norm = ? LIMIT 20",
+                        (text.casefold(),),
+                    ).fetchall()
+                    # Some fused-database internal aliases (for example plain
+                    # "glucose") have no structure. Prefer a structured
+                    # D/alpha/beta source record when it exists, while retaining
+                    # exact-name matching.
+                    if rows and all(not row["smiles"] for row in rows):
+                        aliases = (
+                            "d-" + text.casefold(),
+                            "alpha-d-" + text.casefold(),
+                            "beta-d-" + text.casefold(),
+                        )
+                        alias_rows = connection.execute(
+                            "SELECT * FROM metabolites WHERE name_norm IN (?,?,?) LIMIT 20",
+                            aliases,
                         ).fetchall()
+                        if alias_rows:
+                            rows = tuple(rows) + tuple(alias_rows)
             if rows:
                 molecule = self._row_to_molecule(self._preferred_row(rows), text)
             else:

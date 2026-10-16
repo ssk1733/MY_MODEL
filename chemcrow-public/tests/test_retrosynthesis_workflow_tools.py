@@ -272,6 +272,67 @@ class LayeredRetrosynthesisToolsTest(unittest.TestCase):
         self.assertTrue(first_reaction["enzyme"]["ec_numbers"])
         self.assertIn("provenance", first_reaction["enzyme"])
 
+    def test_mcts_partitions_model_and_database_before_reaction_expansion(self):
+        tool = EnzymeRetrosynthesisSearch(
+            database_service=self.database,
+            model_client=EnzRetroClient(predictor=FakePredictor()),
+            config={
+                "use_database": True,
+                "use_model": True,
+                "max_depth": 6,
+                "max_expansions": 20,
+                "forward_anchor_depth": 0,
+                "top_k_routes": 3,
+                "solution_pool_multiplier": 1,
+                "mcts_rollout_depth": 2,
+                "mcts_random_seed": 3,
+            },
+        )
+        result = json.loads(
+            tool.run(
+                json.dumps(
+                    {
+                        "target": "Target",
+                        "building_blocks": ["Start"],
+                        "top_k": 3,
+                        "search_algorithm": "and_or_mcts",
+                    }
+                )
+            )
+        )
+
+        self.assertTrue(result["ok"])
+        runtime = result["mcts_search_tree"]
+        self.assertEqual(runtime["representation"], "SOURCE_PARTITIONED_AND_OR_MCTS")
+        root_branches = runtime["root_source_branches"]
+        self.assertEqual(
+            [branch["source"] for branch in root_branches],
+            ["MODEL", "DATABASE"],
+        )
+        self.assertTrue(all(branch["candidate_count"] > 0 for branch in root_branches))
+        self.assertGreater(result["stats"]["mcts_source_expansions"]["MODEL"], 0)
+        self.assertGreater(result["stats"]["mcts_source_expansions"]["DATABASE"], 0)
+        self.assertTrue(
+            any(node["node_type"] == "SOURCE" for node in runtime["nodes"])
+        )
+        self.assertTrue(
+            any(
+                node["node_type"] == "AND_REACTION_STATE"
+                for node in runtime["nodes"]
+            )
+        )
+        graph = result["and_or_tree"]
+        self.assertTrue(graph["source_partitioned"])
+        self.assertEqual(
+            [branch["source"] for branch in graph["root_source_branches"]],
+            ["MODEL", "DATABASE"],
+        )
+        self.assertEqual(
+            result["candidate_generation"]["fusion"],
+            "SOURCE_PARTITIONED_DURING_MCTS; COMPLETE_ROUTES_MERGED_FOR_TOP_K",
+        )
+        self.assertGreaterEqual(result["route_count"], 1)
+
     def test_and_reaction_requires_every_noncurrency_precursor(self):
         def search(blocks):
             tool = EnzymeRetrosynthesisSearch(

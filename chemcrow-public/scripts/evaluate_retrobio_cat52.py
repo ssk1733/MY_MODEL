@@ -91,7 +91,8 @@ def build_agent_prompt(
    原样作为 targets，并把完整的 D 原样作为 building_blocks。
 3. 调用 JSON 应与下列结构一致：{action_json}
 4. 必须设置 endpoint_mode=exact_set，并在每个扩展节点同时使用本地数据库
-   和 MooRetro 神经模型，将候选融合后执行 AND-OR MCTS。有效路线必须以 A 为根、
+   和 MooRetro 神经模型，先建立 MODEL/DATABASE 来源分支，再分别扩展其反应 AND
+   节点并执行 MCTS。有效路线必须以 A 为根、
    连通、无环，而且所有非辅因子叶节点集合必须与 D 完全相等；不得遗漏、替换或增加底物。
 5. 只接受 route_validation.valid=true 的路线，并保留工具返回的完整 Top {top_k}
    routes、steps、所有 AND 分支、反应方程与酶信息，不得猜测未知酶。
@@ -423,7 +424,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=PROJECT_ROOT / "benchmark_results" / "retrobiocat52_agent_v7",
+        default=PROJECT_ROOT / "benchmark_results" / "retrobiocat52_agent_v8",
     )
     parser.add_argument("--model", default=os.getenv("CHEMCROW_MODEL", "deepseek-flash"))
     parser.add_argument("--tools-model", default=None)
@@ -513,7 +514,7 @@ def main() -> None:
     top_k_routes_path = output_dir / "top_k_routes.jsonl"
 
     run_config = {
-        "protocol": "targets-plus-building-blocks-agent-v7-exact-set",
+        "protocol": "targets-plus-building-blocks-agent-v8-source-partitioned-exact-set",
         "dataset": str(args.dataset.resolve()),
         "dataset_sha256": hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
         "selected_case_ids": [case["benchmark_id"] for case in cases],
@@ -672,7 +673,7 @@ def main() -> None:
     pathway = summary["complete_pathway_success"]
     enzyme = summary["enzyme_complete_pathway_success"]
     report_lines = [
-        "RetroBioCat52 Agent v7 评测（targets + exact_set + DB/MooRetro AND-OR MCTS）",
+        "RetroBioCat52 Agent v8 评测（targets + exact_set + DB/MooRetro AND-OR MCTS）",
         (
             f"找到完整逆合成路径（Top {args.top_k} 内）: "
             f"{pathway['fraction']} ({pathway['success_rate'] * 100:.2f}%)"

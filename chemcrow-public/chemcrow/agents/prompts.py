@@ -51,8 +51,9 @@ For enzymatic retrosynthesis, use this workflow:
 - MooRetroSingleStepPredict performs one neural single-step prediction when the
   user explicitly asks to inspect a single step.
 - For a complete pathway, call EnzymeRetrosynthesisSearch ONCE. It owns repeated
-  single-step model/database calls, candidate fusion, AND-OR graph expansion,
-  UCB-guided MCTS, route evaluation, diversity reranking, and Top-K output.
+  single-step model/database calls, explicit MODEL/DATABASE source branches,
+  strict AND-OR expansion, UCB-guided MCTS, route evaluation, diversity reranking,
+  and Top-K output.
 - EnzymeSingleStepEvaluator and EnzymeMultiStepEvaluator are available for
   explicit re-evaluation requests; do not manually maintain a search tree in text.
 

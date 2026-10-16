@@ -1,0 +1,2259 @@
+{
+  "dataset_split": "n5",
+  "errors": [
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000181",
+      "step_id": "n5-000181:step:0006"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000257",
+      "step_id": "n5-000257:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-000257",
+      "step_id": "n5-000257:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-000257",
+      "step_id": "n5-000257:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000257",
+      "step_id": "n5-000257:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-000257",
+      "step_id": "n5-000257:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000305",
+      "step_id": "n5-000305:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000305",
+      "step_id": "n5-000305:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000305",
+      "step_id": "n5-000305:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000305",
+      "step_id": "n5-000305:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000400",
+      "step_id": "n5-000400:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000400",
+      "step_id": "n5-000400:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000400",
+      "step_id": "n5-000400:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000400",
+      "step_id": "n5-000400:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-000400",
+      "step_id": "n5-000400:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000466",
+      "step_id": "n5-000466:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-000466",
+      "step_id": "n5-000466:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-000466",
+      "step_id": "n5-000466:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-000466",
+      "step_id": "n5-000466:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000668",
+      "step_id": "n5-000668:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000668",
+      "step_id": "n5-000668:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000668",
+      "step_id": "n5-000668:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000668",
+      "step_id": "n5-000668:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000668",
+      "step_id": "n5-000668:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000677",
+      "step_id": "n5-000677:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000677",
+      "step_id": "n5-000677:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000677",
+      "step_id": "n5-000677:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000677",
+      "step_id": "n5-000677:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000677",
+      "step_id": "n5-000677:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000717",
+      "step_id": "n5-000717:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000717",
+      "step_id": "n5-000717:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000717",
+      "step_id": "n5-000717:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000717",
+      "step_id": "n5-000717:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000717",
+      "step_id": "n5-000717:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-000726",
+      "step_id": "n5-000726:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-000726",
+      "step_id": "n5-000726:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-000726",
+      "step_id": "n5-000726:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-000726",
+      "step_id": "n5-000726:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-000726",
+      "step_id": "n5-000726:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001005",
+      "step_id": "n5-001005:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001005",
+      "step_id": "n5-001005:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001080",
+      "step_id": "n5-001080:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-001080",
+      "step_id": "n5-001080:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001080",
+      "step_id": "n5-001080:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001080",
+      "step_id": "n5-001080:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-001080",
+      "step_id": "n5-001080:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001127",
+      "step_id": "n5-001127:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001147",
+      "step_id": "n5-001147:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001147",
+      "step_id": "n5-001147:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-001147",
+      "step_id": "n5-001147:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001147",
+      "step_id": "n5-001147:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-001147",
+      "step_id": "n5-001147:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001234",
+      "step_id": "n5-001234:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001234",
+      "step_id": "n5-001234:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-001234",
+      "step_id": "n5-001234:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-001234",
+      "step_id": "n5-001234:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001328",
+      "step_id": "n5-001328:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001328",
+      "step_id": "n5-001328:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-001328",
+      "step_id": "n5-001328:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001328",
+      "step_id": "n5-001328:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001358",
+      "step_id": "n5-001358:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001358",
+      "step_id": "n5-001358:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001404",
+      "step_id": "n5-001404:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-001404",
+      "step_id": "n5-001404:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001404",
+      "step_id": "n5-001404:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001529",
+      "step_id": "n5-001529:step:0006"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001539",
+      "step_id": "n5-001539:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-001539",
+      "step_id": "n5-001539:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-001539",
+      "step_id": "n5-001539:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-001539",
+      "step_id": "n5-001539:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001589",
+      "step_id": "n5-001589:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-001589",
+      "step_id": "n5-001589:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-001970",
+      "step_id": "n5-001970:step:0006"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002092",
+      "step_id": "n5-002092:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002092",
+      "step_id": "n5-002092:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002092",
+      "step_id": "n5-002092:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002092",
+      "step_id": "n5-002092:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-002092",
+      "step_id": "n5-002092:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002233",
+      "step_id": "n5-002233:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002233",
+      "step_id": "n5-002233:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-002233",
+      "step_id": "n5-002233:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-002233",
+      "step_id": "n5-002233:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-002233",
+      "step_id": "n5-002233:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002265",
+      "step_id": "n5-002265:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002265",
+      "step_id": "n5-002265:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002265",
+      "step_id": "n5-002265:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002265",
+      "step_id": "n5-002265:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002432",
+      "step_id": "n5-002432:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-002432",
+      "step_id": "n5-002432:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002630",
+      "step_id": "n5-002630:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002630",
+      "step_id": "n5-002630:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002630",
+      "step_id": "n5-002630:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002630",
+      "step_id": "n5-002630:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002632",
+      "step_id": "n5-002632:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002632",
+      "step_id": "n5-002632:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-002632",
+      "step_id": "n5-002632:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-002632",
+      "step_id": "n5-002632:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002741",
+      "step_id": "n5-002741:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-002741",
+      "step_id": "n5-002741:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002741",
+      "step_id": "n5-002741:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002741",
+      "step_id": "n5-002741:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002806",
+      "step_id": "n5-002806:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-002955",
+      "step_id": "n5-002955:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-002955",
+      "step_id": "n5-002955:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-002955",
+      "step_id": "n5-002955:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-002955",
+      "step_id": "n5-002955:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003082",
+      "step_id": "n5-003082:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003082",
+      "step_id": "n5-003082:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-003082",
+      "step_id": "n5-003082:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003082",
+      "step_id": "n5-003082:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003082",
+      "step_id": "n5-003082:step:0005"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003163",
+      "step_id": "n5-003163:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003163",
+      "step_id": "n5-003163:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-003163",
+      "step_id": "n5-003163:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003163",
+      "step_id": "n5-003163:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003202",
+      "step_id": "n5-003202:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-003202",
+      "step_id": "n5-003202:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003270",
+      "step_id": "n5-003270:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-003270",
+      "step_id": "n5-003270:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003270",
+      "step_id": "n5-003270:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003373",
+      "step_id": "n5-003373:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003373",
+      "step_id": "n5-003373:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-003373",
+      "step_id": "n5-003373:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003756",
+      "step_id": "n5-003756:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003871",
+      "step_id": "n5-003871:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-003871",
+      "step_id": "n5-003871:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003871",
+      "step_id": "n5-003871:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-003871",
+      "step_id": "n5-003871:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003883",
+      "step_id": "n5-003883:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003883",
+      "step_id": "n5-003883:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-003883",
+      "step_id": "n5-003883:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003950",
+      "step_id": "n5-003950:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-003950",
+      "step_id": "n5-003950:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-003950",
+      "step_id": "n5-003950:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-003950",
+      "step_id": "n5-003950:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003984",
+      "step_id": "n5-003984:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003984",
+      "step_id": "n5-003984:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-003984",
+      "step_id": "n5-003984:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-003996",
+      "step_id": "n5-003996:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-003996",
+      "step_id": "n5-003996:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-003996",
+      "step_id": "n5-003996:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004082",
+      "step_id": "n5-004082:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-004082",
+      "step_id": "n5-004082:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004103",
+      "step_id": "n5-004103:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004103",
+      "step_id": "n5-004103:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-004103",
+      "step_id": "n5-004103:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004136",
+      "step_id": "n5-004136:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004136",
+      "step_id": "n5-004136:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-004136",
+      "step_id": "n5-004136:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004348",
+      "step_id": "n5-004348:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004348",
+      "step_id": "n5-004348:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-004348",
+      "step_id": "n5-004348:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-004348",
+      "step_id": "n5-004348:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004416",
+      "step_id": "n5-004416:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-004416",
+      "step_id": "n5-004416:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-004416",
+      "step_id": "n5-004416:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004457",
+      "step_id": "n5-004457:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-004457",
+      "step_id": "n5-004457:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004480",
+      "step_id": "n5-004480:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-004480",
+      "step_id": "n5-004480:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-004480",
+      "step_id": "n5-004480:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004554",
+      "step_id": "n5-004554:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004554",
+      "step_id": "n5-004554:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004651",
+      "step_id": "n5-004651:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-004651",
+      "step_id": "n5-004651:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-004651",
+      "step_id": "n5-004651:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-004651",
+      "step_id": "n5-004651:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004717",
+      "step_id": "n5-004717:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004717",
+      "step_id": "n5-004717:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-004717",
+      "step_id": "n5-004717:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004736",
+      "step_id": "n5-004736:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004736",
+      "step_id": "n5-004736:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-004736",
+      "step_id": "n5-004736:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004877",
+      "step_id": "n5-004877:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004877",
+      "step_id": "n5-004877:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[2].children[0]",
+      "route_id": "n5-004877",
+      "step_id": "n5-004877:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004974",
+      "step_id": "n5-004974:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004974",
+      "step_id": "n5-004974:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-004974",
+      "step_id": "n5-004974:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-004993",
+      "step_id": "n5-004993:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-004993",
+      "step_id": "n5-004993:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-004993",
+      "step_id": "n5-004993:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005011",
+      "step_id": "n5-005011:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005011",
+      "step_id": "n5-005011:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-005011",
+      "step_id": "n5-005011:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005184",
+      "step_id": "n5-005184:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005184",
+      "step_id": "n5-005184:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-005184",
+      "step_id": "n5-005184:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005185",
+      "step_id": "n5-005185:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005352",
+      "step_id": "n5-005352:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005352",
+      "step_id": "n5-005352:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005413",
+      "step_id": "n5-005413:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005413",
+      "step_id": "n5-005413:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-005413",
+      "step_id": "n5-005413:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005441",
+      "step_id": "n5-005441:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005441",
+      "step_id": "n5-005441:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-005441",
+      "step_id": "n5-005441:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005499",
+      "step_id": "n5-005499:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005499",
+      "step_id": "n5-005499:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[1].children[0]",
+      "route_id": "n5-005499",
+      "step_id": "n5-005499:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005543",
+      "step_id": "n5-005543:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005543",
+      "step_id": "n5-005543:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-005543",
+      "step_id": "n5-005543:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-005543",
+      "step_id": "n5-005543:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005653",
+      "step_id": "n5-005653:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005653",
+      "step_id": "n5-005653:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-005653",
+      "step_id": "n5-005653:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005802",
+      "step_id": "n5-005802:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005802",
+      "step_id": "n5-005802:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005838",
+      "step_id": "n5-005838:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005838",
+      "step_id": "n5-005838:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005908",
+      "step_id": "n5-005908:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-005908",
+      "step_id": "n5-005908:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-005908",
+      "step_id": "n5-005908:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005910",
+      "step_id": "n5-005910:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005910",
+      "step_id": "n5-005910:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-005910",
+      "step_id": "n5-005910:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005918",
+      "step_id": "n5-005918:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005918",
+      "step_id": "n5-005918:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-005918",
+      "step_id": "n5-005918:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-005944",
+      "step_id": "n5-005944:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-005944",
+      "step_id": "n5-005944:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006073",
+      "step_id": "n5-006073:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006073",
+      "step_id": "n5-006073:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-006073",
+      "step_id": "n5-006073:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006229",
+      "step_id": "n5-006229:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006229",
+      "step_id": "n5-006229:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-006229",
+      "step_id": "n5-006229:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006247",
+      "step_id": "n5-006247:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006247",
+      "step_id": "n5-006247:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006424",
+      "step_id": "n5-006424:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006424",
+      "step_id": "n5-006424:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-006424",
+      "step_id": "n5-006424:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-006424",
+      "step_id": "n5-006424:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006435",
+      "step_id": "n5-006435:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006435",
+      "step_id": "n5-006435:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-006435",
+      "step_id": "n5-006435:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006461",
+      "step_id": "n5-006461:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-006461",
+      "step_id": "n5-006461:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006652",
+      "step_id": "n5-006652:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-006652",
+      "step_id": "n5-006652:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006783",
+      "step_id": "n5-006783:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-006783",
+      "step_id": "n5-006783:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-006893",
+      "step_id": "n5-006893:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-006893",
+      "step_id": "n5-006893:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007255",
+      "step_id": "n5-007255:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-007255",
+      "step_id": "n5-007255:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007276",
+      "step_id": "n5-007276:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-007276",
+      "step_id": "n5-007276:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-007276",
+      "step_id": "n5-007276:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007381",
+      "step_id": "n5-007381:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-007381",
+      "step_id": "n5-007381:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-007381",
+      "step_id": "n5-007381:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007702",
+      "step_id": "n5-007702:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-007702",
+      "step_id": "n5-007702:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007769",
+      "step_id": "n5-007769:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-007769",
+      "step_id": "n5-007769:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-007769",
+      "step_id": "n5-007769:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007859",
+      "step_id": "n5-007859:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-007859",
+      "step_id": "n5-007859:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-007859",
+      "step_id": "n5-007859:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-007973",
+      "step_id": "n5-007973:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-007973",
+      "step_id": "n5-007973:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008131",
+      "step_id": "n5-008131:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-008131",
+      "step_id": "n5-008131:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008146",
+      "step_id": "n5-008146:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-008146",
+      "step_id": "n5-008146:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-008146",
+      "step_id": "n5-008146:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-008146",
+      "step_id": "n5-008146:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008202",
+      "step_id": "n5-008202:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-008202",
+      "step_id": "n5-008202:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-008202",
+      "step_id": "n5-008202:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008381",
+      "step_id": "n5-008381:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-008381",
+      "step_id": "n5-008381:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-008381",
+      "step_id": "n5-008381:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008805",
+      "step_id": "n5-008805:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-008805",
+      "step_id": "n5-008805:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008922",
+      "step_id": "n5-008922:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-008922",
+      "step_id": "n5-008922:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-008922",
+      "step_id": "n5-008922:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-008922",
+      "step_id": "n5-008922:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-008944",
+      "step_id": "n5-008944:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009052",
+      "step_id": "n5-009052:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-009052",
+      "step_id": "n5-009052:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-009052",
+      "step_id": "n5-009052:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009284",
+      "step_id": "n5-009284:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-009284",
+      "step_id": "n5-009284:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-009284",
+      "step_id": "n5-009284:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009348",
+      "step_id": "n5-009348:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009372",
+      "step_id": "n5-009372:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-009372",
+      "step_id": "n5-009372:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009501",
+      "step_id": "n5-009501:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-009501",
+      "step_id": "n5-009501:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0]",
+      "route_id": "n5-009501",
+      "step_id": "n5-009501:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[1].children[0].children[0].children[0]",
+      "route_id": "n5-009501",
+      "step_id": "n5-009501:step:0004"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009565",
+      "step_id": "n5-009565:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-009565",
+      "step_id": "n5-009565:step:0002"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0].children[0].children[0]",
+      "route_id": "n5-009565",
+      "step_id": "n5-009565:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009722",
+      "step_id": "n5-009722:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[1].children[0]",
+      "route_id": "n5-009722",
+      "step_id": "n5-009722:step:0003"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0]",
+      "route_id": "n5-009871",
+      "step_id": "n5-009871:step:0001"
+    },
+    {
+      "error": "metadata_tree_conflict",
+      "policy": "tree_parent_and_direct_children_are_authoritative",
+      "reaction_node_id": "$.children[0].children[0].children[0]",
+      "route_id": "n5-009871",
+      "step_id": "n5-009871:step:0002"
+    }
+  ],
+  "files": {
+    "routes": {
+      "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-routes.json",
+      "sha256": "d878bec737d34a861b859912ac783f065c380f704f6d0087af4ea8ef667fa2bf",
+      "size_bytes": 82120928
+    },
+    "stock": {
+      "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-stock.txt",
+      "sha256": "199ec2d9fad0638c3ae53f2ea091dcd6bf9207a938b12ae1aa9429c37dd097af",
+      "size_bytes": 360970
+    },
+    "targets": {
+      "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-targets.txt",
+      "sha256": "dd5d37e63ec05c3d72fee14607e4bd90d0ccc4eedf38129cd69dab3e5bdb0e56",
+      "size_bytes": 487792
+    }
+  },
+  "invalid_reference_routes": 0,
+  "invalid_route_indices": [],
+  "metadata_conflict_policy": "record conflict; use tree parent and direct molecule children",
+  "metadata_tree_conflict_count": 317,
+  "normalization_rule": "RDKit canonical isomeric SMILES after clearing atom-map numbers; stereochemistry, charge and isotopes retained",
+  "reaction_count_max": 10,
+  "reaction_count_mean": 3.8483,
+  "reaction_count_min": 2,
+  "reaction_node_count": 38483,
+  "reaction_nodes_with_repeated_precursor_strings": 30,
+  "route_count": 10000,
+  "routes_with_multiple_continuing_precursors": 1091,
+  "stock_equals_reference_leaf_union": true,
+  "stock_line_count": 13328,
+  "target_count": 10000,
+  "unique_stock_string_count": 13328,
+  "unique_target_string_count": 10000,
+  "valid_reference_routes": 10000
+}

@@ -42,14 +42,19 @@ def _jaccard(left: Iterable[str], right: Iterable[str]) -> float:
 
 @dataclass
 class _MCTSNode:
-    """One MCTS state over an AND-OR retrosynthesis hypergraph."""
+    """One node in the source-partitioned AND-OR MCTS search tree."""
 
     state: RouteState
     parent: Optional["_MCTSNode"] = None
-    prior: float = 0.0
+    node_type: str = "OR_STATE"
+    source: Optional[str] = None
+    expanded_molecule_key: Optional[str] = None
     incoming_candidate_id: Optional[str] = None
+    incoming_precursor_keys: Tuple[str, ...] = ()
+    prior: float = 0.0
     children: List["_MCTSNode"] = field(default_factory=list)
     pending_states: List[Tuple[float, str, RouteState]] = field(default_factory=list)
+    pending_actions: Dict[str, ReactionCandidate] = field(default_factory=dict)
     prepared: bool = False
     terminal: bool = False
     dead_end: bool = False
@@ -79,6 +84,7 @@ class HybridPlannerEngine:
         self._trace: List[Dict[str, Any]] = []
         self._stats: Dict[str, Any] = {}
         self._forward_alternatives: Dict[str, Tuple[ForwardAnchor, ...]] = {}
+        self._mcts_tree_export: Optional[Dict[str, Any]] = None
 
     def _event(self, event: str, **values: Any) -> None:
         record = {"event": event, **values}
@@ -241,6 +247,86 @@ class HybridPlannerEngine:
         scored = score_and_rank_candidates(combined, building_blocks, self.config)
         scored = self._filter_candidates(scored, state=state)
         return scored[: self.config.candidate_beam_width]
+
+    def _mcts_candidate_groups(
+        self,
+        target: MoleculeNode,
+        building_blocks: Sequence[MoleculeNode],
+        *,
+        state: Optional[RouteState] = None,
+    ) -> Dict[str, Tuple[ReactionCandidate, ...]]:
+        """Query and score MODEL/DATABASE candidates as separate MCTS branches."""
+        database_candidates: Tuple[ReactionCandidate, ...] = ()
+        model_candidates: Tuple[ReactionCandidate, ...] = ()
+        if self.config.use_database:
+            self._stats["backward_queries"] += 1
+            database_candidates = self.database.backward_candidates(
+                target,
+                limit=self.config.database_top_k,
+                respect_direction=self.config.respect_reaction_direction,
+                allow_unknown_direction=self.config.allow_unknown_direction,
+                currency_ids=self.config.currency_metabolite_ids,
+            )
+            self._stats["database_candidates"] += len(database_candidates)
+        if (
+            self.config.use_model
+            and self.model_client is not None
+            and (
+                self._stats["model_calls"] + self._stats["model_failures"]
+                < self.config.max_model_calls
+            )
+        ):
+            try:
+                cache_before = self.model_client.cache_info()
+                self._stats["model_requests"] += 1
+                model_candidates = self.model_client.predict_candidates(
+                    target,
+                    building_blocks,
+                    top_k=self.config.model_top_k,
+                    currency_ids=self.config.currency_metabolite_ids,
+                    normalizer=self.database.normalize_molecule,
+                )
+                self._stats["model_candidates"] += len(model_candidates)
+                cache_after = self.model_client.cache_info()
+                self._stats["model_calls"] += max(
+                    0, cache_after["misses"] - cache_before["misses"]
+                )
+                self._stats["model_cache_hits"] += max(
+                    0, cache_after["hits"] - cache_before["hits"]
+                )
+            except Exception as exc:
+                self._stats["model_failures"] += 1
+                self._stats["warnings"].append(str(exc))
+                self._event("model_failure", target=target.key, error=str(exc))
+
+        raw_groups = {
+            "MODEL": model_candidates,
+            "DATABASE": database_candidates,
+        }
+        groups: Dict[str, Tuple[ReactionCandidate, ...]] = {}
+        for source in ("MODEL", "DATABASE"):
+            if source == "MODEL" and not self.config.use_model:
+                continue
+            if source == "DATABASE" and not self.config.use_database:
+                continue
+            ranked = score_and_rank_candidates(
+                raw_groups[source], building_blocks, self.config
+            )
+            filtered = self._filter_candidates(ranked, state=state)
+            groups[source] = filtered[: self.config.candidate_beam_width]
+            self._stats["mcts_source_candidates"][source] += len(groups[source])
+
+        database_fingerprints = {
+            candidate.fingerprint for candidate in groups.get("DATABASE", ())
+        }
+        model_fingerprints = {
+            candidate.fingerprint for candidate in groups.get("MODEL", ())
+        }
+        self._stats["consensus_candidates"] += len(
+            database_fingerprints & model_fingerprints
+        )
+        self._stats["fusion_candidates"] += sum(map(len, groups.values()))
+        return groups
 
     def _forward_anchor_cache_key(
         self,
@@ -730,6 +816,32 @@ class HybridPlannerEngine:
 
         return max(node.children, key=ucb)
 
+    def _mcts_select_child_from(
+        self,
+        parent: _MCTSNode,
+        children: Sequence[_MCTSNode],
+        rng: random.Random,
+    ) -> _MCTSNode:
+        """Apply the same UCB/epsilon policy to an explicit child subset."""
+        if rng.random() < self.config.mcts_epsilon:
+            return rng.choice(list(children))
+        parent_visits = max(1, parent.visits)
+
+        def ucb(child: _MCTSNode) -> Tuple[float, float, str]:
+            if child.visits == 0:
+                score = float("inf")
+            else:
+                exploration = self.config.mcts_exploration_constant * math.sqrt(
+                    math.log(parent_visits + 1.0) / child.visits
+                )
+                score = child.mean_value + exploration + child.prior / (
+                    1.0 + child.visits
+                )
+            label = child.source or child.incoming_candidate_id or ""
+            return score, child.prior, label
+
+        return max(children, key=ucb)
+
     def _mcts_allowed_children(self, node: _MCTSNode) -> int:
         total = len(node.children) + len(node.pending_states)
         if not self.config.mcts_progressive_widening:
@@ -748,19 +860,19 @@ class HybridPlannerEngine:
         building_block_keys: set[str],
         anchors: Mapping[str, ForwardAnchor],
         signature_costs: Dict[Tuple[str, ...], List[float]],
-    ) -> None:
-        """Expand one OR molecule into reaction-AND alternatives."""
+    ) -> int:
+        """Expand one route state into MODEL/DATABASE source branches."""
         if node.prepared or node.terminal or node.dead_end:
-            return
+            return 0
         node.prepared = True
         state = node.state
         if not state.unresolved:
             node.terminal = True
-            return
+            return 0
         if len(state.steps) >= self.config.max_depth:
             node.dead_end = True
             self._stats["dead_ends"] += 1
-            return
+            return 0
 
         self._stats["states_expanded"] += 1
         selected_key = self._choose_unresolved(state, building_blocks)
@@ -773,56 +885,85 @@ class HybridPlannerEngine:
             visits=node.visits,
             unresolved_count=len(state.unresolved),
         )
-        candidates = self._candidate_batch(
+        groups = self._mcts_candidate_groups(
             selected, building_blocks, state=state
         )
-        if not candidates:
+        created = 0
+        for source in ("MODEL", "DATABASE"):
+            if source not in groups:
+                continue
+            source_node = _MCTSNode(
+                state=state,
+                parent=node,
+                node_type="SOURCE",
+                source=source,
+                expanded_molecule_key=selected_key,
+                prepared=True,
+                tree_depth=node.tree_depth + 1,
+            )
+            node.children.append(source_node)
+            created += 1
+            self._stats["mcts_source_branches_created"][source] += 1
+
+            pending: List[Tuple[float, str, RouteState]] = []
+            action_by_id: Dict[str, ReactionCandidate] = {}
+            for candidate in groups[source]:
+                for generated in self._expand_state(
+                    state, selected_key, (candidate,)
+                ):
+                    closed = self._close_solved_leaves(
+                        generated, building_block_keys, anchors
+                    )
+                    if closed is None:
+                        continue
+                    self._stats["states_generated"] += 1
+                    if closed.unresolved:
+                        signature_key = (source,) + closed.signature
+                        costs = signature_costs.setdefault(signature_key, [])
+                        if (
+                            len(costs) >= self.config.max_states_per_signature
+                            and closed.cost >= max(costs) - 1.0e-12
+                        ):
+                            self._stats["duplicate_states_pruned"] += 1
+                            continue
+                        costs.append(closed.cost)
+                        costs.sort()
+                        del costs[self.config.max_states_per_signature :]
+
+                    action_index = len(state.steps)
+                    action = (
+                        generated.steps[action_index]
+                        if action_index < len(generated.steps)
+                        else generated.steps[-1]
+                    )
+                    prior = float(
+                        action.step_score
+                        or math.exp(-float(action.step_cost or 0.0))
+                    )
+                    action_by_id[action.candidate_id] = action
+                    pending.append((prior, action.candidate_id, closed))
+                    self._event(
+                        "mcts_reaction_child",
+                        parent_molecule=selected_key,
+                        source_branch=source,
+                        reaction=action.candidate_id,
+                        and_precursor_count=len(action.noncurrency_precursors),
+                        prior=round(prior, 8),
+                    )
+
+            pending.sort(key=lambda item: (-item[0], item[1], item[2].signature))
+            source_node.pending_states = pending
+            source_node.prior = max((item[0] for item in pending), default=0.0)
+            source_node.dead_end = not pending
+            source_node.pending_actions = action_by_id
+            if source_node.dead_end:
+                self._stats["mcts_source_dead_ends"][source] += 1
+
+        if not node.children or all(child.dead_end for child in node.children):
             node.dead_end = True
             self._stats["dead_ends"] += 1
             self._event("dead_end", molecule=selected_key)
-            return
-
-        pending: List[Tuple[float, str, RouteState]] = []
-        for generated in self._expand_state(state, selected_key, candidates):
-            closed = self._close_solved_leaves(
-                generated, building_block_keys, anchors
-            )
-            if closed is None:
-                continue
-            self._stats["states_generated"] += 1
-            if closed.unresolved:
-                costs = signature_costs.setdefault(closed.signature, [])
-                if (
-                    len(costs) >= self.config.max_states_per_signature
-                    and closed.cost >= max(costs) - 1.0e-12
-                ):
-                    self._stats["duplicate_states_pruned"] += 1
-                    continue
-                costs.append(closed.cost)
-                costs.sort()
-                del costs[self.config.max_states_per_signature :]
-
-            action_index = len(state.steps)
-            action = (
-                generated.steps[action_index]
-                if action_index < len(generated.steps)
-                else generated.steps[-1]
-            )
-            prior = float(action.step_score or math.exp(-float(action.step_cost or 0.0)))
-            pending.append((prior, action.candidate_id, closed))
-            self._event(
-                "mcts_reaction_child",
-                parent_molecule=selected_key,
-                reaction=action.candidate_id,
-                and_precursor_count=len(action.noncurrency_precursors),
-                prior=round(prior, 8),
-            )
-
-        pending.sort(key=lambda item: (-item[0], item[1], item[2].signature))
-        node.pending_states = pending
-        if not pending:
-            node.dead_end = True
-            self._stats["dead_ends"] += 1
+        return created
 
     def _mcts_rollout(
         self,
@@ -833,7 +974,7 @@ class HybridPlannerEngine:
         anchors: Mapping[str, ForwardAnchor],
         rng: random.Random,
     ) -> Tuple[RouteState, float, bool]:
-        """Run a virtual policy rollout without adding nodes to the main tree."""
+        """Run a MooRetro-style virtual rollout over separate source branches."""
         state = start
         if not state.unresolved:
             return state, self._mcts_reward(
@@ -845,16 +986,19 @@ class HybridPlannerEngine:
                 break
             selected_key = self._choose_unresolved(state, building_blocks)
             selected = state.molecules[selected_key]
-            candidates = self._candidate_batch(
+            groups = self._mcts_candidate_groups(
                 selected, building_blocks, state=state
             )
-            options: List[RouteState] = []
-            for generated in self._expand_state(state, selected_key, candidates):
-                closed = self._close_solved_leaves(
-                    generated, building_block_keys, anchors
-                )
-                if closed is not None:
-                    options.append(closed)
+            options: List[Tuple[str, RouteState]] = []
+            for source in ("MODEL", "DATABASE"):
+                for generated in self._expand_state(
+                    state, selected_key, groups.get(source, ())
+                ):
+                    closed = self._close_solved_leaves(
+                        generated, building_block_keys, anchors
+                    )
+                    if closed is not None:
+                        options.append((source, closed))
             if not options:
                 return state, self._mcts_reward(
                     state,
@@ -866,22 +1010,24 @@ class HybridPlannerEngine:
 
             self._stats["mcts_rollout_steps"] += 1
             if rng.random() < self.config.mcts_epsilon:
-                state = rng.choice(options)
+                selected_source, state = rng.choice(options)
             else:
-                state = max(
+                selected_source, state = max(
                     options,
-                    key=lambda value: (
-                        not value.unresolved,
+                    key=lambda item: (
+                        not item[1].unresolved,
                         self._mcts_reward(
-                            value,
+                            item[1],
                             target,
                             building_blocks,
-                            complete=not value.unresolved,
+                            complete=not item[1].unresolved,
                         ),
-                        -value.cost,
-                        tuple(step.candidate_id for step in value.steps),
+                        -item[1].cost,
+                        item[0] == "MODEL",
+                        tuple(step.candidate_id for step in item[1].steps),
                     ),
                 )
+            self._stats["mcts_rollout_source_selections"][selected_source] += 1
             if not state.unresolved:
                 return state, self._mcts_reward(
                     state, target, building_blocks, complete=True
@@ -901,6 +1047,85 @@ class HybridPlannerEngine:
             return True
         return any(HybridPlannerEngine._mcts_has_frontier(child) for child in node.children)
 
+    @staticmethod
+    def _serialize_mcts_search_tree(root: _MCTSNode) -> Dict[str, Any]:
+        """Serialize the actual runtime MCTS tree, including source partitions."""
+        queue = [root]
+        ordered: List[_MCTSNode] = []
+        seen = set()
+        while queue:
+            node = queue.pop(0)
+            identity = id(node)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            ordered.append(node)
+            queue.extend(node.children)
+        identifiers = {id(node): f"mcts_{index}" for index, node in enumerate(ordered)}
+        nodes = []
+        edges = []
+        for node in ordered:
+            node_id = identifiers[id(node)]
+            nodes.append(
+                {
+                    "node_id": node_id,
+                    "node_type": node.node_type,
+                    "source": node.source,
+                    "expanded_molecule_key": node.expanded_molecule_key,
+                    "incoming_candidate_id": node.incoming_candidate_id,
+                    "incoming_precursor_keys": list(node.incoming_precursor_keys),
+                    "unresolved_molecule_keys": list(node.state.unresolved),
+                    "route_step_count": len(node.state.steps),
+                    "candidate_count": len(node.children) + len(node.pending_states),
+                    "visits": node.visits,
+                    "mean_value": round(node.mean_value, 8),
+                    "best_value": round(node.best_value, 8),
+                    "prior": round(node.prior, 8),
+                    "terminal": node.terminal,
+                    "dead_end": node.dead_end,
+                    "tree_depth": node.tree_depth,
+                }
+            )
+            for child in node.children:
+                if child.node_type == "SOURCE":
+                    relation = "SOURCE_PARTITION"
+                elif child.node_type == "AND_REACTION_STATE":
+                    relation = "REACTION_EXPANSION"
+                else:
+                    relation = "SEARCH_TRANSITION"
+                edges.append(
+                    {
+                        "source": node_id,
+                        "target": identifiers[id(child)],
+                        "relation": relation,
+                    }
+                )
+        root_branches = [
+            {
+                "node_id": identifiers[id(child)],
+                "source": child.source,
+                "candidate_count": len(child.children) + len(child.pending_states),
+                "visits": child.visits,
+                "dead_end": child.dead_end,
+            }
+            for child in root.children
+            if child.node_type == "SOURCE"
+        ]
+        return {
+            "representation": "SOURCE_PARTITIONED_AND_OR_MCTS",
+            "root_node_id": identifiers[id(root)],
+            "root_source_branches": root_branches,
+            "nodes": nodes,
+            "edges": edges,
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "source_branch_order": ["MODEL", "DATABASE"],
+            "and_semantics": (
+                "a reaction state remains unresolved until every non-currency "
+                "precursor is solved"
+            ),
+        }
+
     def _run_and_or_mcts(
         self,
         initial: RouteState,
@@ -912,9 +1137,9 @@ class HybridPlannerEngine:
         complete_fingerprints: set[Tuple[str, ...]],
         pool_target: int,
     ) -> str:
-        """Run UCB-guided MCTS over reaction-AND/molecule-OR route states."""
+        """Run source-partitioned UCB MCTS over strict reaction-AND states."""
         rng = random.Random(self.config.mcts_random_seed)
-        root = _MCTSNode(state=initial)
+        root = _MCTSNode(state=initial, node_type="OR_STATE")
         signature_costs: Dict[Tuple[str, ...], List[float]] = {}
         tree_nodes = 1
         max_tree_depth = 0
@@ -940,9 +1165,17 @@ class HybridPlannerEngine:
                 "route_complete",
                 cost=route.cost,
                 steps=len(route.steps),
-                algorithm="and_or_mcts",
+                algorithm="source_partitioned_and_or_mcts",
             )
             return True
+
+        def root_sources_expanded() -> bool:
+            source_children = [
+                child for child in root.children if child.node_type == "SOURCE"
+            ]
+            return bool(source_children) and all(
+                child.dead_end or bool(child.children) for child in source_children
+            )
 
         for iteration in range(1, self.config.max_expansions + 1):
             self._stats["mcts_iterations"] = iteration
@@ -952,17 +1185,37 @@ class HybridPlannerEngine:
             while True:
                 if node.terminal or node.dead_end:
                     break
-                if not node.prepared:
-                    if self._stats["states_expanded"] >= self.config.max_expansions:
+
+                if node.node_type != "SOURCE":
+                    if not node.prepared:
+                        if self._stats["states_expanded"] >= self.config.max_expansions:
+                            break
+                        created = self._mcts_prepare_node(
+                            node,
+                            building_blocks,
+                            building_block_keys,
+                            anchors,
+                            signature_costs,
+                        )
+                        tree_nodes += created
+                        if node.children:
+                            max_tree_depth = max(
+                                max_tree_depth,
+                                max(child.tree_depth for child in node.children),
+                            )
+                    if node.terminal or node.dead_end:
                         break
-                    self._mcts_prepare_node(
-                        node,
-                        building_blocks,
-                        building_block_keys,
-                        anchors,
-                        signature_costs,
-                    )
-                if node.terminal or node.dead_end:
+                    viable_sources = [
+                        child for child in node.children if not child.dead_end
+                    ]
+                    if viable_sources:
+                        node = self._mcts_select_child_from(
+                            node, viable_sources, rng
+                        )
+                        path.append(node)
+                        self._stats["mcts_selection_steps"] += 1
+                        continue
+                    node.dead_end = True
                     break
 
                 allowed = self._mcts_allowed_children(node)
@@ -974,11 +1227,21 @@ class HybridPlannerEngine:
                     prior, candidate_id, child_state = node.pending_states.pop(
                         pending_index
                     )
+                    action = node.pending_actions.get(candidate_id)
+                    precursor_keys = (
+                        tuple(item.key for item in action.noncurrency_precursors)
+                        if action is not None
+                        else ()
+                    )
                     child = _MCTSNode(
                         state=child_state,
                         parent=node,
-                        prior=prior,
+                        node_type="AND_REACTION_STATE",
+                        source=node.source,
+                        expanded_molecule_key=node.expanded_molecule_key,
                         incoming_candidate_id=candidate_id,
+                        incoming_precursor_keys=precursor_keys,
+                        prior=prior,
                         terminal=not child_state.unresolved,
                         tree_depth=node.tree_depth + 1,
                     )
@@ -988,10 +1251,16 @@ class HybridPlannerEngine:
                     tree_nodes += 1
                     max_tree_depth = max(max_tree_depth, child.tree_depth)
                     self._stats["mcts_expansion_nodes"] += 1
+                    self._stats["mcts_source_expansions"][child.source] += 1
                     break
 
-                if node.children:
-                    node = self._mcts_select_child(node, rng)
+                viable_children = [
+                    child for child in node.children if not child.dead_end
+                ]
+                if viable_children:
+                    node = self._mcts_select_child_from(
+                        node, viable_children, rng
+                    )
                     path.append(node)
                     self._stats["mcts_selection_steps"] += 1
                     continue
@@ -1000,14 +1269,25 @@ class HybridPlannerEngine:
                 break
 
             self._stats["mcts_rollouts"] += 1
-            rollout_state, reward, is_complete = self._mcts_rollout(
-                node.state,
-                target,
-                building_blocks,
-                building_block_keys,
-                anchors,
-                rng,
-            )
+            if node.dead_end:
+                rollout_state = node.state
+                reward = self._mcts_reward(
+                    node.state,
+                    target,
+                    building_blocks,
+                    complete=False,
+                    dead_end=True,
+                )
+                is_complete = False
+            else:
+                rollout_state, reward, is_complete = self._mcts_rollout(
+                    node.state,
+                    target,
+                    building_blocks,
+                    building_block_keys,
+                    anchors,
+                    rng,
+                )
             if is_complete:
                 is_complete = record_solution(rollout_state)
                 if not is_complete:
@@ -1020,6 +1300,8 @@ class HybridPlannerEngine:
                 visited.visits += 1
                 visited.value_sum += reward
                 visited.best_value = max(visited.best_value, reward)
+                if visited.node_type == "SOURCE" and visited.source:
+                    self._stats["mcts_source_branch_visits"][visited.source] += 1
             self._stats["mcts_backpropagations"] += 1
             self._event(
                 "mcts_backpropagation",
@@ -1027,9 +1309,13 @@ class HybridPlannerEngine:
                 reward=round(reward, 8),
                 path_length=len(path),
                 complete=is_complete,
+                source_path=[
+                    item.source for item in path
+                    if item.node_type == "SOURCE"
+                ],
             )
 
-            if len(complete) >= pool_target:
+            if len(complete) >= pool_target and root_sources_expanded():
                 termination = "TOP_K_FOUND"
                 break
             if not self._mcts_has_frontier(root):
@@ -1040,11 +1326,15 @@ class HybridPlannerEngine:
                 )
                 break
 
-        self._stats["mcts_tree_nodes"] = tree_nodes
+        self._mcts_tree_export = self._serialize_mcts_search_tree(root)
+        self._stats["mcts_tree_nodes"] = self._mcts_tree_export["node_count"]
         self._stats["mcts_max_tree_depth"] = max_tree_depth
         self._stats["mcts_root_visits"] = root.visits
         self._stats["mcts_root_mean_value"] = round(root.mean_value, 8)
         self._stats["mcts_best_reward"] = round(best_reward, 8)
+        self._stats["mcts_root_source_branches"] = list(
+            self._mcts_tree_export["root_source_branches"]
+        )
         return termination
 
     @staticmethod
@@ -1496,6 +1786,7 @@ class HybridPlannerEngine:
     ) -> Dict[str, Any]:
         started = time.monotonic()
         self._trace = []
+        self._mcts_tree_export = None
         self._stats = {
             "states_expanded": 0,
             "states_generated": 0,
@@ -1537,6 +1828,13 @@ class HybridPlannerEngine:
             "mcts_root_visits": 0,
             "mcts_root_mean_value": 0.0,
             "mcts_best_reward": 0.0,
+            "mcts_source_candidates": {"MODEL": 0, "DATABASE": 0},
+            "mcts_source_branches_created": {"MODEL": 0, "DATABASE": 0},
+            "mcts_source_dead_ends": {"MODEL": 0, "DATABASE": 0},
+            "mcts_source_expansions": {"MODEL": 0, "DATABASE": 0},
+            "mcts_source_branch_visits": {"MODEL": 0, "DATABASE": 0},
+            "mcts_rollout_source_selections": {"MODEL": 0, "DATABASE": 0},
+            "mcts_root_source_branches": [],
             "endpoint_routes_rejected": 0,
             "endpoint_route_rejection_reasons": {},
         }
@@ -1822,6 +2120,8 @@ class HybridPlannerEngine:
             "stats": self._stats,
             "config": self.config.to_dict(),
         }
+        if self._mcts_tree_export is not None:
+            output["mcts_search_tree"] = self._mcts_tree_export
         if self.config.include_search_trace:
             output["search_trace"] = self._trace
         return output

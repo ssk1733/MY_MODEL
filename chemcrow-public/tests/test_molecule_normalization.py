@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,6 +30,28 @@ class MoleculeInputNormalizerTest(unittest.TestCase):
         self.assertEqual(
             result["normalized_molecules"][0]["matched_by"], "smiles"
         )
+
+    def test_valid_smiles_wins_over_ambiguous_exact_database_name(self):
+        connection = sqlite3.connect(self.database.db_path)
+        connection.execute(
+            "INSERT INTO metabolites VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (
+                "C19999", "CO", "co", "Cytosol", "CO", 0.0,
+                "[C-]#[O+]", "[C-]#[O+]", None, 0.2,
+            ),
+        )
+        connection.commit()
+        connection.close()
+
+        database = EnzymeReactionDatabase(self.database.db_path)
+        result = json.loads(
+            MoleculeInputNormalizer(database_service=database).run("CO")
+        )
+        molecule = result["normalized_molecules"][0]
+        self.assertTrue(result["ok"])
+        self.assertEqual(molecule["canonical_smiles"], "CO")
+        self.assertEqual(molecule["database_id"], "C10005")
+        self.assertEqual(molecule["matched_by"], "smiles")
 
     def test_resolves_exact_local_name(self):
         result = json.loads(

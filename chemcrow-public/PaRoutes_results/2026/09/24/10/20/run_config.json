@@ -1,0 +1,77 @@
+{
+  "dataset_files": {
+    "n1": {
+      "routes": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-routes.json",
+        "sha256": "b818f2115ce10da51f84bf13f19dc2206863b1b074ef348017de258e9e1bff02"
+      },
+      "stock": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-stock.txt",
+        "sha256": "b8641e2028846d995953b30f7acd36e7521d0301159518d172497340a0bfb115"
+      },
+      "targets": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-targets.txt",
+        "sha256": "14661af6052a8c2e6dad4c142b8d8693ed87692c5eee0d280110357a5af5e1ab"
+      }
+    },
+    "n5": {
+      "routes": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-routes.json",
+        "sha256": "d878bec737d34a861b859912ac783f065c380f704f6d0087af4ea8ef667fa2bf"
+      },
+      "stock": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-stock.txt",
+        "sha256": "199ec2d9fad0638c3ae53f2ea091dcd6bf9207a938b12ae1aa9429c37dd097af"
+      },
+      "targets": {
+        "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-targets.txt",
+        "sha256": "dd5d37e63ec05c3d72fee14607e4bd90d0ccc4eedf38129cd69dab3e5bdb0e56"
+      }
+    }
+  },
+  "dataset_root": "/root/autodl-tmp/my_model/dataset/PaRoutes",
+  "db_path": null,
+  "ec_level": 3,
+  "execution_mode": "manual_agent_simulation_without_llm_or_api",
+  "include_search_trees": false,
+  "input_semantics": "target plus route-specific unique stock leaves",
+  "moo_root": "/root/autodl-tmp/my_model/MooRetro-master",
+  "output_directory": "/root/autodl-tmp/my_model/chemcrow-public/PaRoutes_results/2026/09/24/10/20",
+  "protocol": "paroutes-tools-v1-exact-leaves-exact-single-steps",
+  "search": {
+    "endpoint_mode": "exact_set",
+    "max_depth": 10,
+    "max_expansions": 5000,
+    "max_model_calls": 100,
+    "model_backend_required": "neural_model",
+    "search_algorithm": "and_or_mcts",
+    "top_k": 10,
+    "use_database": true,
+    "use_model": true
+  },
+  "selected_counts": {
+    "n1": 10000,
+    "n5": 10000
+  },
+  "selection": {
+    "case_ids": [],
+    "limit_per_split": null,
+    "offset_per_split": 0
+  },
+  "single_fn_type": "biocyc",
+  "single_step_match": "exact canonical target and exact canonical precursor multiset; precursor order ignored",
+  "single_step_route_selection": "maximum exact reference-step matches among independently validated complete returned routes",
+  "splits": [
+    "n1",
+    "n5"
+  ],
+  "started_at": "2026-09-24T10:20:42.167018+08:00",
+  "target_counts": {
+    "n1": 10000,
+    "n5": 10000
+  },
+  "tool_sequence": [
+    "MoleculeInputNormalizer",
+    "EnzymeRetrosynthesisSearch"
+  ]
+}

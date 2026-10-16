@@ -271,6 +271,83 @@ class EnzRetroClient:
             )
         return tuple(candidates)
 
+    def predict_candidates_with_audit(
+        self,
+        target: MoleculeNode,
+        building_blocks: Sequence[MoleculeNode],
+        *,
+        top_k: int = 10,
+        currency_ids: Iterable[str] = DEFAULT_CURRENCY_IDS,
+        normalizer: Optional[Callable[[str], MoleculeNode]] = None,
+    ) -> Tuple[Tuple[ReactionCandidate, ...], Dict[str, Any]]:
+        """Return converted candidates together with every raw model result.
+
+        The normal planner API intentionally returns only valid structured
+        candidates. Benchmark callers need the pre-drop snapshot as well, so
+        this companion method reports one audit entry per raw prediction and a
+        rejection reason for entries that could not be converted.
+        """
+        candidates = self.predict_candidates(
+            target,
+            building_blocks,
+            top_k=top_k,
+            currency_ids=currency_ids,
+            normalizer=normalizer,
+        )
+        target_smiles = target.canonical_smiles or target.smiles
+        block_smiles = tuple(
+            item.canonical_smiles or item.smiles
+            for item in building_blocks
+            if item.canonical_smiles or item.smiles
+        )
+        raw_predictions = (
+            self._raw_predictions(target_smiles, block_smiles, top_k)
+            if target_smiles
+            else ()
+        )
+        valid_indices = {
+            int(candidate.metadata["raw_prediction_index"]): candidate.candidate_id
+            for candidate in candidates
+        }
+        records: List[Dict[str, Any]] = []
+        for index, raw in enumerate(raw_predictions):
+            reason = None
+            if index not in valid_indices:
+                value = raw.get("all_reactants") or raw.get("reactants")
+                if isinstance(value, (list, tuple)):
+                    reactants = [str(item) for item in value if item]
+                else:
+                    reactants = [item for item in str(value or "").split(".") if item]
+                if not reactants:
+                    reason = "missing_precursors"
+                else:
+                    try:
+                        for smiles in reactants:
+                            if normalizer is not None:
+                                normalizer(smiles)
+                            else:
+                                molecule_key(smiles, None)
+                    except (TypeError, ValueError) as exc:
+                        reason = "invalid_precursor: " + str(exc)
+                    if reason is None:
+                        reason = "candidate_conversion_failed"
+            records.append(
+                {
+                    "raw_rank": index + 1,
+                    "raw_prediction": dict(raw),
+                    "candidate_id": valid_indices.get(index),
+                    "valid": index in valid_indices,
+                    "invalid_reason": reason,
+                }
+            )
+        return candidates, {
+            "requested": int(top_k),
+            "raw_returned": len(raw_predictions),
+            "valid_returned": len(candidates),
+            "records": records,
+        }
+
+
     def _runtime_device(self) -> Optional[str]:
         if self.single_fn_type in {"model_xlsx", "xlsx"}:
             return "cpu"

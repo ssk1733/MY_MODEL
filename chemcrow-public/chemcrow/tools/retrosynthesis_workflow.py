@@ -519,9 +519,10 @@ class EnzymeRetrosynthesisSearch(BaseTool):
         "\"endpoint_mode\":\"any_stock\",\"top_k\":10}. The default "
         "any_stock mode stops only when every non-currency route leaf is present "
         "in the supplied stock/library; exact_set additionally requires every "
-        "supplied building block to be used. Candidate database and model reactions "
-        "are fused into the same AND-OR hypergraph, selected by UCB plus evaluated "
-        "reaction quality and stock similarity, and returned as evaluated Top-K "
+        "supplied building block to be used. Every expanded route state first "
+        "creates MODEL and DATABASE source branches; each branch owns its reaction "
+        "AND nodes and is selected by epsilon-greedy UCB using reaction quality and "
+        "stock similarity. Complete routes are then merged and returned as Top-K "
         "routes (or Top-K multi-target route bundles)."
     )
 
@@ -563,11 +564,23 @@ class EnzymeRetrosynthesisSearch(BaseTool):
         self._base_config = base
 
     @staticmethod
-    def _solution_graph(result: Mapping[str, Any]) -> Dict[str, Any]:
+    def _solution_graph(
+        result: Mapping[str, Any], config: PlannerConfig
+    ) -> Dict[str, Any]:
+        """Build the Top-K chemical graph plus explicit model/database branches."""
         molecules: Dict[str, Dict[str, Any]] = {}
+        sources: Dict[str, Dict[str, Any]] = {}
         reactions: Dict[str, Dict[str, Any]] = {}
+        edges: Dict[Tuple[str, str, str], Dict[str, str]] = {}
         root = result["target"]["key"]
         stock = {item["key"] for item in result.get("building_blocks", [])}
+
+        def record_edge(source: str, target: str, relation: str) -> None:
+            edges[(source, target, relation)] = {
+                "source": source,
+                "target": target,
+                "relation": relation,
+            }
 
         def record_molecule(
             molecule: Mapping[str, Any], route_rank: int, role: str = "intermediate"
@@ -589,8 +602,37 @@ class EnzymeRetrosynthesisSearch(BaseTool):
                 node["role"] = "target"
             elif key in stock:
                 node["role"] = "building_block"
-            if route_rank not in node["solution_routes"]:
+            if route_rank and route_rank not in node["solution_routes"]:
                 node["solution_routes"].append(route_rank)
+
+        def record_source(
+            molecule_key: str, source: str, route_rank: int = 0
+        ) -> str:
+            node_id = f"source::{molecule_key}::{source}"
+            node = sources.setdefault(
+                node_id,
+                {
+                    "node_id": node_id,
+                    "node_type": "SOURCE",
+                    "source": source,
+                    "molecule_key": molecule_key,
+                    "reaction_node_ids": [],
+                    "solution_routes": [],
+                },
+            )
+            if route_rank and route_rank not in node["solution_routes"]:
+                node["solution_routes"].append(route_rank)
+            record_edge(molecule_key, node_id, "SOURCE_PARTITION")
+            return node_id
+
+        record_molecule(result["target"], 0, "target")
+        enabled_sources = []
+        if config.use_model:
+            enabled_sources.append("MODEL")
+        if config.use_database:
+            enabled_sources.append("DATABASE")
+        for source in enabled_sources:
+            record_source(root, source)
 
         for route in result.get("routes", []):
             rank = int(route["rank"])
@@ -604,6 +646,16 @@ class EnzymeRetrosynthesisSearch(BaseTool):
                     record_molecule(precursor, rank)
                     precursor_keys.append(precursor["key"])
                 candidate_id = step["candidate_id"]
+                provenance = str(step.get("provenance") or "UNKNOWN").upper()
+                step_sources = (
+                    ["MODEL", "DATABASE"]
+                    if provenance == "BOTH"
+                    else [provenance]
+                )
+                source_node_ids = [
+                    record_source(step["target"]["key"], source, rank)
+                    for source in step_sources
+                ]
                 node = reactions.setdefault(
                     candidate_id,
                     {
@@ -611,7 +663,8 @@ class EnzymeRetrosynthesisSearch(BaseTool):
                         "node_type": "AND",
                         "target_key": step["target"]["key"],
                         "precursor_keys": precursor_keys,
-                        "provenance": step.get("provenance"),
+                        "provenance": provenance,
+                        "source_branch_node_ids": [],
                         "database_reaction_ids": step.get("database_reaction_ids", []),
                         "ec_numbers": step.get("ec_numbers", []),
                         "step_score": step.get("score"),
@@ -619,26 +672,49 @@ class EnzymeRetrosynthesisSearch(BaseTool):
                         "solution_routes": [],
                     },
                 )
+                for source_node_id in source_node_ids:
+                    if source_node_id not in node["source_branch_node_ids"]:
+                        node["source_branch_node_ids"].append(source_node_id)
+                    source_node = sources[source_node_id]
+                    if candidate_id not in source_node["reaction_node_ids"]:
+                        source_node["reaction_node_ids"].append(candidate_id)
+                    record_edge(source_node_id, candidate_id, "REACTION_CHOICE")
+                for precursor_key in precursor_keys:
+                    record_edge(candidate_id, precursor_key, "REQUIRES_ALL")
                 if rank not in node["solution_routes"]:
                     node["solution_routes"].append(rank)
+
+        runtime_tree = result.get("mcts_search_tree")
         return {
             "representation": "AND_OR_HYPERGRAPH",
+            "source_partitioned": True,
             "root_molecule_key": root,
-            "or_semantics": "choose one producing reaction for each molecule",
-            "and_semantics": "solve every non-currency precursor of the reaction",
+            "root_source_branches": [
+                sources[f"source::{root}::{source}"] for source in enabled_sources
+            ],
+            "source_branch_order": ["MODEL", "DATABASE"],
+            "or_semantics": "choose one source/reaction alternative for each molecule",
+            "and_semantics": (
+                "solve every non-currency precursor of the selected reaction; "
+                "no children[0] shortcut is permitted"
+            ),
             "molecule_nodes": list(molecules.values()),
+            "source_nodes": list(sources.values()),
             "reaction_nodes": list(reactions.values()),
+            "edges": list(edges.values()),
             "molecule_node_count": len(molecules),
+            "source_node_count": len(sources),
             "reaction_node_count": len(reactions),
-            "scope": "TOP_K_COMPLETE_SOLUTION_SUBGRAPH",
+            "runtime_mcts_tree": runtime_tree,
+            "scope": "TOP_K_COMPLETE_SOLUTION_SUBGRAPH_PLUS_RUNTIME_MCTS",
         }
 
     @staticmethod
     def _algorithm_record(algorithm: str, config: PlannerConfig) -> Dict[str, Any]:
         if algorithm == "and_or_mcts":
             node_selection = (
-                "UCB1 with candidate-quality prior; candidate quality includes "
-                "similarity/progress toward the supplied stock"
+                "MooRetro-style epsilon-greedy UCB1 over explicit MODEL and "
+                "DATABASE source branches, with candidate-quality and stock priors"
             )
         elif algorithm == "best_first_beam":
             node_selection = "minimum evaluated cost plus stock-distance heuristic"
@@ -649,15 +725,24 @@ class EnzymeRetrosynthesisSearch(BaseTool):
             "graph": "AND_OR_HYPERGRAPH",
             "node_selection": node_selection,
             "candidate_generation": (
-                "local database and local MooRetro model queried for every expanded "
-                "OR molecule, then fused before ranking"
+                "local MooRetro model and local database queried separately for "
+                "every expanded OR state; candidates remain under MODEL/DATABASE "
+                "source nodes during MCTS and complete routes are merged only for Top-K"
             ),
+            "source_partition": {
+                "order": ["MODEL", "DATABASE"],
+                "node_type": "SOURCE",
+                "applied_at_every_expanded_state": True,
+            },
             "mcts": (
                 {
-                    "selection": "UCB1_WITH_QUALITY_AND_STOCK_SIMILARITY_PRIOR",
-                    "expansion": "reaction AND node with all non-currency precursors",
-                    "simulation": "bounded evaluator-guided rollout",
-                    "backpropagation": "scalar route-quality reward",
+                    "selection": "EPSILON_GREEDY_UCB1_OVER_SOURCE_AND_REACTION_NODES",
+                    "expansion": (
+                        "OR route state -> MODEL/DATABASE source nodes -> reaction "
+                        "AND state containing all non-currency precursors"
+                    ),
+                    "simulation": "bounded source-partitioned evaluator-guided rollout",
+                    "backpropagation": "scalar route-quality reward through source nodes",
                     "exploration_constant": config.mcts_exploration_constant,
                     "rollout_depth": config.mcts_rollout_depth,
                     "random_seed": config.mcts_random_seed,
@@ -706,12 +791,24 @@ class EnzymeRetrosynthesisSearch(BaseTool):
                 if self._model_client is not None
                 else None
             ),
-            "fusion": "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS",
+            "source_branches": [
+                source
+                for source, enabled in (
+                    ("MODEL", config.use_model),
+                    ("DATABASE", config.use_database),
+                )
+                if enabled
+            ],
+            "fusion": (
+                "SOURCE_PARTITIONED_DURING_MCTS; COMPLETE_ROUTES_MERGED_FOR_TOP_K"
+                if algorithm == "and_or_mcts"
+                else "UNION_WITH_EXACT_PRECURSOR_AND_EC_CONSENSUS"
+            ),
             "performed_at_each_expanded_molecule": True,
         }
         result["planner"] = self.name
         result["search_algorithm"] = self._algorithm_record(algorithm, config)
-        result["and_or_tree"] = self._solution_graph(result)
+        result["and_or_tree"] = self._solution_graph(result, config)
         return result
 
     @staticmethod

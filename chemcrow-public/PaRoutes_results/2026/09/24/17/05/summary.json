@@ -1,0 +1,222 @@
+{
+  "output_directory": "/root/autodl-tmp/my_model/chemcrow-public/PaRoutes_results/2026/09/24/17/05",
+  "overall": {
+    "attempted_single_steps": 20,
+    "case_count": 20,
+    "complete_multistep_paths": {
+      "fraction": "0/20",
+      "success_count": 0,
+      "success_rate": 0.0,
+      "total_count": 20
+    },
+    "error_count": 0,
+    "runtime": {
+      "mean_seconds": 32.865974,
+      "median_seconds": 31.582336,
+      "total_seconds": 657.31947
+    },
+    "single_step_top_k_accuracy": {
+      "1": {
+        "fraction": "0/179",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 179
+      },
+      "10": {
+        "fraction": "0/179",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 179
+      },
+      "3": {
+        "fraction": "0/179",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 179
+      }
+    },
+    "single_steps_successful_at_any_returned_rank": {
+      "fraction": "0/179",
+      "success_count": 0,
+      "success_rate": 0.0,
+      "total_count": 179
+    },
+    "successful_cases": 20,
+    "unattempted_after_miss": 159
+  },
+  "protocol": "paroutes-tools-v2-teacher-forced-one-step-ranking",
+  "run_config": {
+    "candidate_generation": {
+      "candidate_limit": 100,
+      "database_top_k": 100,
+      "filtering": "planner state-independent filters",
+      "fusion": "fuse_candidates",
+      "model_top_k": 50,
+      "ranking": "score_and_rank_candidates",
+      "saved_candidate_count": 20,
+      "sources": [
+        "MODEL",
+        "DATABASE"
+      ]
+    },
+    "dataset_files": {
+      "n1": {
+        "routes": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-routes.json",
+          "sha256": "b818f2115ce10da51f84bf13f19dc2206863b1b074ef348017de258e9e1bff02"
+        },
+        "stock": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-stock.txt",
+          "sha256": "b8641e2028846d995953b30f7acd36e7521d0301159518d172497340a0bfb115"
+        },
+        "targets": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n1-targets.txt",
+          "sha256": "14661af6052a8c2e6dad4c142b8d8693ed87692c5eee0d280110357a5af5e1ab"
+        }
+      },
+      "n5": {
+        "routes": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-routes.json",
+          "sha256": "d878bec737d34a861b859912ac783f065c380f704f6d0087af4ea8ef667fa2bf"
+        },
+        "stock": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-stock.txt",
+          "sha256": "199ec2d9fad0638c3ae53f2ea091dcd6bf9207a938b12ae1aa9429c37dd097af"
+        },
+        "targets": {
+          "path": "/root/autodl-tmp/my_model/dataset/PaRoutes/n5-targets.txt",
+          "sha256": "dd5d37e63ec05c3d72fee14607e4bd90d0ccc4eedf38129cd69dab3e5bdb0e56"
+        }
+      }
+    },
+    "dataset_root": "/root/autodl-tmp/my_model/dataset/PaRoutes",
+    "db_path": null,
+    "ec_level": 3,
+    "evaluation": {
+      "continuation": "continue after hit regardless of rank; stop case at first miss",
+      "mode": "teacher_forced_reference_step_prefix",
+      "report_top_k": [
+        1,
+        3,
+        10
+      ],
+      "step_success": "one fused candidate contains every canonical reference precursor; extra precursors allowed",
+      "top_k_denominator": "all reference steps in all selected cases"
+    },
+    "execution_mode": "manual_agent_simulation_without_llm_or_api",
+    "ground_truth_not_sent_to_predictor": "routes.json reaction tree",
+    "moo_root": "/root/autodl-tmp/my_model/MooRetro-master",
+    "output_directory": "/root/autodl-tmp/my_model/chemcrow-public/PaRoutes_results/2026/09/24/17/05",
+    "prediction_input": "target from targets.txt plus complete split stock.txt",
+    "protocol": "paroutes-tools-v2-teacher-forced-one-step-ranking",
+    "selected_counts": {
+      "n1": 10,
+      "n5": 10
+    },
+    "selection": {
+      "case_ids": [],
+      "limit_per_split": 10,
+      "offset_per_split": 0
+    },
+    "single_fn_type": "biocyc",
+    "splits": [
+      "n1",
+      "n5"
+    ],
+    "started_at": "2026-09-24T17:05:49.331624+08:00",
+    "target_counts": {
+      "n1": 10000,
+      "n5": 10000
+    }
+  },
+  "splits": {
+    "n1": {
+      "attempted_single_steps": 10,
+      "case_count": 10,
+      "complete_multistep_paths": {
+        "fraction": "0/10",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 10
+      },
+      "error_count": 0,
+      "runtime": {
+        "mean_seconds": 32.954942,
+        "median_seconds": 31.582336,
+        "total_seconds": 329.549419
+      },
+      "single_step_top_k_accuracy": {
+        "1": {
+          "fraction": "0/90",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 90
+        },
+        "10": {
+          "fraction": "0/90",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 90
+        },
+        "3": {
+          "fraction": "0/90",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 90
+        }
+      },
+      "single_steps_successful_at_any_returned_rank": {
+        "fraction": "0/90",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 90
+      },
+      "successful_cases": 10,
+      "unattempted_after_miss": 80
+    },
+    "n5": {
+      "attempted_single_steps": 10,
+      "case_count": 10,
+      "complete_multistep_paths": {
+        "fraction": "0/10",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 10
+      },
+      "error_count": 0,
+      "runtime": {
+        "mean_seconds": 32.777005,
+        "median_seconds": 32.196013,
+        "total_seconds": 327.770051
+      },
+      "single_step_top_k_accuracy": {
+        "1": {
+          "fraction": "0/89",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 89
+        },
+        "10": {
+          "fraction": "0/89",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 89
+        },
+        "3": {
+          "fraction": "0/89",
+          "success_count": 0,
+          "success_rate": 0.0,
+          "total_count": 89
+        }
+      },
+      "single_steps_successful_at_any_returned_rank": {
+        "fraction": "0/89",
+        "success_count": 0,
+        "success_rate": 0.0,
+        "total_count": 89
+      },
+      "successful_cases": 10,
+      "unattempted_after_miss": 79
+    }
+  }
+}

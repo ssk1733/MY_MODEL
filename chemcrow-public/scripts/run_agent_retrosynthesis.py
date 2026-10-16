@@ -60,7 +60,9 @@ def build_prompt(
 
 请先规范化直接给出的分子；不要把整个底物库文件复制进上下文。随后只调用一次
 EnzymeRetrosynthesisSearch，让该工具在每个被扩展分子上同时调用本地数据库和
-MooRetro 神经单步模型，将两类候选加入同一 AND-OR 图并执行 MCTS。
+MooRetro 神经单步模型。在每个路线状态下先建立 MODEL 与 DATABASE 两个来源
+分支，再在各来源分支下加入 AND-OR 图中的反应 AND 节点并执行 MCTS；每个反应的全部必要前体
+都必须继续求解。
 
 搜索输入必须保持以下结构和全部目标/底物：
 {json.dumps(search_input, ensure_ascii=False)}

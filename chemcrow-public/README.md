@@ -129,7 +129,9 @@ represents molecules as OR nodes and reactions as AND nodes. Every non-currency
 precursor of a chosen reaction must be solved. The default policy is
 `and_or_mcts`, using UCB selection, reaction expansion, bounded
 evaluator-guided rollout, scalar reward backpropagation, and progressive
-widening. Database and MooRetro candidates are fused before expansion.
+widening. Each expanded route state first creates explicit `MODEL` and `DATABASE`
+source branches. Reaction AND nodes remain separate under those branches during
+MCTS; complete valid routes are merged only for final Top-K evaluation.
 
 ```python
 import json
@@ -189,6 +191,42 @@ python scripts/evaluate_retrobio_cat52.py \
   --agent-attempts 2 \
   --overwrite
 ```
+
+To measure the local tool/search stack without spending LLM API tokens, call the
+same normalization and retrosynthesis tools directly:
+
+```bash
+python scripts/evaluate_retrobio_cat52_tools.py \
+  --top-k 10 \
+  --report-top-k 1,3,10 \
+  --max-depth 10 \
+  --max-expansions 5000 \
+  --max-model-calls 100
+```
+
+This mode still uses the local database and the MooRetro neural model, followed
+by source-partitioned AND-OR MCTS. It does not construct an LLM Agent or require
+an API key. Each run is saved under
+`benchmark_results/YYYY/MM/DD/HH/MM/` and can be resumed within that minute.
+
+For the PaRoutes n1/n5 reference trees, run the corresponding tool-only
+benchmark with:
+
+```bash
+python scripts/evaluate_paroutes_tools.py \
+  --split n1 --split n5 \
+  --report-top-k 1,3,10 \
+  --database-top-k 100 \
+  --model-top-k 50 \
+  --candidate-limit 100
+```
+
+The predictor receives only each target and the split's complete stock. The
+hidden reference route is traversed one step at a time: a matching ranked
+database/model candidate continues the case regardless of rank, while the first
+miss stops it. The report includes completed-step fractions, fully completed
+multistep cases, and single-step Top-1/3/10 accuracy over all reference steps.
+Results are saved under `PaRoutes_results/YYYY/MM/DD/HH/MM/`.
 
 The adapted dataset and its metric definitions are documented in
 `../dataset/retrobiocat52/README.md`. The source provides targets, literature

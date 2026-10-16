@@ -64,6 +64,26 @@ def canonicalize_smiles(smiles: str | None) -> str | None:
 
 
 @lru_cache(maxsize=100000)
+def canonicalize_smiles_without_atom_maps(smiles: str | None) -> str | None:
+    """Canonicalize a structure after removing atom-map annotations.
+
+    Atom maps identify atoms in a reaction record; they are not part of a
+    molecule's chemical identity. The regular planner canonicalizer retains
+    them for callers that need mapped reactions, while reference-guided
+    evaluation uses this identity canonicalizer on predictions and ground
+    truth alike.
+    """
+    if not smiles:
+        return None
+    molecule = Chem.MolFromSmiles(str(smiles))
+    if molecule is None:
+        return None
+    for atom in molecule.GetAtoms():
+        atom.SetAtomMapNum(0)
+    return Chem.MolToSmiles(molecule, canonical=True, isomericSmiles=True)
+
+
+@lru_cache(maxsize=100000)
 def _mol(smiles: str | None):
     return Chem.MolFromSmiles(smiles) if smiles else None
 

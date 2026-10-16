@@ -1,0 +1,59 @@
+{
+  "building_block_strategy": "route_leaves",
+  "candidate_budgets": {
+    "candidate_beam_width_for_filter_annotation_only": 20,
+    "n_db": 20,
+    "n_model": 10,
+    "ranking_pool_is_not_beam_truncated": true
+  },
+  "database": {
+    "path": "/root/autodl-tmp/my_model/chemcrow-public/chemcrow/data/enzyme_retro.db",
+    "read_only": true,
+    "sha256": "7d17d0e5153b3ef2f25cd7e4e32be4a2000c6c1a13b3444bfcdafdcb9ada35be"
+  },
+  "dataset_root": "/root/autodl-tmp/my_model/dataset/PaRoutes",
+  "execution_mode": "deterministic_python_controller_no_remote_llm",
+  "fusion": "exact_current_product_plus_complete_precursor_multiset",
+  "llm_api_calls": 0,
+  "model": {
+    "artifact": {
+      "exists": true,
+      "path": "/root/autodl-tmp/my_model/MooRetro-master/enzretro/model/biocyc_backward/EC3/model/pytorch_model.pth",
+      "sha256": "d21627e89811b7c4b44e2b95b41f962c47e8a0dc88d707f9666e387f91d87763",
+      "size_bytes": 107419418
+    },
+    "backend_mode": "neural_model",
+    "client_top_k_semantics": "single_fn has no top_k argument; client slices actual decoder output to the fixed requested budget",
+    "ec_level": 3,
+    "entry_point": "/root/autodl-tmp/my_model/MooRetro-master/utils/single_retro_fn.py",
+    "model_xlsx": null,
+    "moo_root": "/root/autodl-tmp/my_model/MooRetro-master",
+    "runtime_device": null,
+    "single_fn_type": "biocyc"
+  },
+  "normalization": "RDKit canonical isomeric SMILES after atom-map removal; retain stereochemistry, charge, isotopes and multiplicity",
+  "protocol": "paroutes-reference-guided-v1",
+  "ranking": "score_and_rank_candidates: step_cost asc, candidate_id asc",
+  "resume": false,
+  "seed": 100,
+  "selection": {
+    "limit_per_split": null,
+    "selected_counts": {
+      "n1": 10000,
+      "n5": 10000
+    },
+    "start_index_zero_based_per_split": 0
+  },
+  "source_hashes": {
+    "evaluation_script": "3a9fc296dcd49467ef06619f0cc67a9feccb48f5468b2833d9a7f8b8b931a551",
+    "model_client": "9f5faa37ae7309832722974e84c69600ad8475cb88426bded63d3b6fe5dbd9af",
+    "scoring": "66abe585d14e0ef9f7b3a1f7c8a582c75476dcb27ffca1e84ffbf63278a86eb0"
+  },
+  "splits": [
+    "n1",
+    "n5"
+  ],
+  "started_at": "2026-10-14T03:40:01.636950+00:00",
+  "traversal": "DFS preorder; precursor children in source array order",
+  "validate_only": false
+}
